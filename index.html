@@ -272,6 +272,8 @@ const MASCOT_NAME = "Djodje";
 // Email accounts (public site): Supabase project. The anon key is public by design; Row Level Security protects each person's row.
 const SUPABASE_URL = "https://pftkobftshnfjubquvrg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_fSSpBi3LRjrAMHPofNgApw_jSX4Qb3N";
+// Dons en pause (demande de Geovany, 2026-10-23) : passer à true pour réafficher la page « Soutenir ».
+const DONATIONS_ON = false;
 // Stripe Payment Links (créés dans le tableau de bord Stripe). Laisser vide tant que Stripe n'est pas configuré.
 const STRIPE_LINKS = { "2": "https://donate.stripe.com/fZu5kFelWap81ph8CE5c400", "5": "https://donate.stripe.com/9B6cN791C7cWfg72eg5c401", "10": "https://donate.stripe.com/eVq9AVelWeFofg7g565c402", "libre": "https://donate.stripe.com/14A5kF4Lmap82tl5qs5c403" };
 
@@ -649,7 +651,7 @@ function render() {
     case "culture": html = cultureView(); break;
     case "progress": html = progressView(); break;
     case "profile": html = profileView(); break;
-    case "soutenir": html = supportView(); break;
+    case "soutenir": html = DONATIONS_ON ? supportView() : homeView(); break;
     default: html = homeView();
   }
   const showNav = S.onboarded && !["ex", "finish", "cover"].includes(R.v);
@@ -727,7 +729,7 @@ function homeView() {
     </div>
     <button class="link" data-go="progress" style="align-self:flex-start">${t("see_progress")}</button>
     <button class="card row" data-go="culture" style="text-align:left;width:100%">${img("walk", 64)}<div class="grow"><h3>${t("culture_card")}</h3><p class="small muted">${t("culture_card_sub")}</p></div>${ic("arrow")}</button>
-    <button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 64)}<div class="grow"><h3>${t("support_card")}</h3><p class="small muted">${t("support_card_sub")}</p></div>${ic("arrow")}</button>
+    ${DONATIONS_ON ? `<button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 64)}<div class="grow"><h3>${t("support_card")}</h3><p class="small muted">${t("support_card_sub")}</p></div>${ic("arrow")}</button>` : ""}
   </div>`;
 }
 
@@ -914,7 +916,7 @@ function profileView() {
       <div class="field-label">${t("set_var")}</div><p class="muted">Santiago · Sotavento (Santiago, Brava, Fogo, Maio)</p>
     </div>
     <button class="card row" data-go="progress" style="text-align:left;width:100%"><span class="grow"><b>${t("see_progress")}</b></span>${ic("arrow")}</button>
-    <button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>
+    ${DONATIONS_ON ? `<button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>` : ""}
     <div class="card stack"><h3>${t("privacy")}</h3><p class="small muted">${t("privacy_p")}</p></div>
     <div class="card stack">${resetAsk ? `<p>${t("reset_q")}</p><div class="row"><button class="btn bad" data-reset-yes>${t("reset_yes")}</button><button class="btn light" data-reset-no>${t("cancel")}</button></div>` : `<button class="btn light" data-reset>${t("reset")}</button>`}</div>
   </div>`;
