@@ -1,0 +1,1161 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0B3D7A"><meta name="description" content="Mar Azul : apprends le kriolu du Cap-Vert gratuitement, avec Djodje le requin."><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%F0%9F%A6%88%3C/text%3E%3C/svg%3E"><style>html,body{margin:0}</style></head><body><title>Mar Azul</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: one phone-width column, cream page, navy actions, bottom tab bar. Single light brand look by choice. */
+:root {
+  --navy: #0B3D7A;
+  --ocean: #2F8FE0;
+  --turquoise: #4FD1E0;
+  --sun: #F9B825;
+  --cream: #FBF6EC;
+  --sand: #F1E7D3;
+  --card: #FFFFFF;
+  --ink: #12294A;
+  --muted: #5D6E86;
+  --line: #E4DCCB;
+  --ok: #1F9D5B;
+  --ok-bg: #E3F6EA;
+  --bad: #C8463D;
+  --bad-bg: #FBE7E4;
+  --tile: #EEF4FA;
+  --display: "Baloo 2", "Nunito", system-ui, sans-serif;
+  --body: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--cream); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--ocean); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; margin: 0; text-wrap: balance; color: var(--navy); }
+h1 { font-size: 1.9rem; font-weight: 800; }
+h2 { font-size: 1.35rem; font-weight: 700; }
+h3 { font-size: 1.05rem; font-weight: 700; }
+p { margin: 0; }
+.app { max-width: 480px; margin: 0 auto; min-height: 100%; display: flex; flex-direction: column; }
+.screen { flex: 1; display: flex; flex-direction: column; gap: 20px; padding-block: 20px 110px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.screen.no-nav { padding-bottom: 28px; }
+.muted { color: var(--muted); }
+.small { font-size: .875rem; }
+.eyebrow { font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ocean); }
+.row { display: flex; align-items: center; gap: 12px; }
+.stack { display: flex; flex-direction: column; gap: 12px; }
+.grow { flex: 1; min-width: 0; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 16px; padding: 14px 20px; font-weight: 800; font-size: 1rem; background: var(--navy); color: #fff; box-shadow: 0 4px 0 #072a55; width: 100%; text-decoration: none; transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
+.btn:active { transform: translateY(2px) scale(.98); box-shadow: 0 2px 0 #072a55; }
+.btn[disabled] { background: #B9C3D1; box-shadow: 0 4px 0 #9AA6B6; cursor: not-allowed; }
+.btn.light { background: var(--card); color: var(--navy); box-shadow: 0 4px 0 var(--line); border: 2px solid var(--line); }
+.btn.sun { background: var(--sun); color: var(--navy); box-shadow: 0 4px 0 #C98F0C; }
+.btn.ok { background: var(--ok); box-shadow: 0 4px 0 #13703F; }
+.btn.bad { background: var(--bad); box-shadow: 0 4px 0 #8F2A23; }
+.link { background: none; border: 0; padding: 0; color: var(--ocean); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
+.iconbtn { background: none; border: 0; padding: 8px; border-radius: 12px; color: var(--navy); display: inline-flex; }
+
+.card { background: var(--card); border-radius: 20px; padding: 16px; border: 1px solid var(--line); }
+.choice { width: 100%; text-align: left; background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; font-weight: 700; display: flex; align-items: center; gap: 12px; box-shadow: 0 3px 0 var(--line); }
+.choice[aria-pressed="true"], .choice.sel { border-color: var(--ocean); background: #E6F2FD; box-shadow: 0 3px 0 var(--ocean); }
+.choice.right { border-color: var(--ok); background: var(--ok-bg); box-shadow: 0 3px 0 var(--ok); }
+.choice.wrong { border-color: var(--bad); background: var(--bad-bg); box-shadow: 0 3px 0 var(--bad); }
+.choice[disabled] { cursor: default; }
+.choice .tag { margin-left: auto; font-size: .75rem; font-weight: 800; color: var(--muted); background: var(--sand); padding: 2px 10px; border-radius: 999px; white-space: nowrap; }
+
+.bubble { position: relative; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 12px 14px; font-weight: 700; }
+.bubble::before { content: ""; position: absolute; left: -9px; top: 22px; width: 14px; height: 14px; background: var(--card); border-left: 2px solid var(--line); border-bottom: 2px solid var(--line); transform: rotate(45deg); }
+.djodje { border-radius: 22px; background: var(--tile); object-fit: cover; flex: none; }
+.mascot-row { display: flex; align-items: center; gap: 16px; }
+
+.progress { height: 12px; background: #E3E8EF; border-radius: 999px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: linear-gradient(90deg, var(--ocean), var(--turquoise)); border-radius: 999px; transition: width .3s; }
+
+/* Island band: CSS sky, sea and mountain illustration used on cards */
+.island { position: relative; overflow: hidden; border-radius: 20px; color: #fff; padding: 18px; min-height: 132px; background: linear-gradient(180deg, #5FB7EE 0%, #9AD6F5 55%, var(--ocean) 55%, var(--navy) 100%); }
+.island svg.scene { position: absolute; right: -6px; bottom: 0; width: 62%; height: 100%; }
+.island > * { position: relative; }
+.island .label { color: #fff; font-weight: 800; text-shadow: 0 1px 2px rgba(11,61,122,.5); }
+.island h2, .island h3 { color: #fff; text-shadow: 0 1px 3px rgba(11,61,122,.55); }
+.island .progress { background: rgba(255,255,255,.45); max-width: 60%; }
+.island .progress > i { background: var(--sun); }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+.stat b { font-family: var(--display); font-size: 1.5rem; color: var(--navy); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.stat span { font-size: .78rem; color: var(--muted); font-weight: 700; line-height: 1.25; }
+
+/* Lesson path */
+.path { display: flex; flex-direction: column; gap: 10px; }
+.lesson-item { display: flex; align-items: center; gap: 14px; background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 12px 14px; text-align: left; width: 100%; box-shadow: 0 3px 0 var(--line); }
+.lesson-item .num { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 1.15rem; flex: none; background: var(--ocean); color: #fff; }
+.lesson-item.done .num { background: var(--ok); }
+.lesson-item.locked { opacity: .6; cursor: not-allowed; }
+.lesson-item.locked .num { background: #B9C3D1; }
+.lesson-item.current { border-color: var(--ocean); box-shadow: 0 3px 0 var(--ocean); }
+
+.tabs { display: flex; gap: 6px; background: var(--sand); padding: 4px; border-radius: 14px; }
+.tabs button { flex: 1; border: 0; background: transparent; padding: 9px 6px; border-radius: 10px; font-weight: 800; color: var(--muted); }
+.tabs button[aria-selected="true"] { background: var(--card); color: var(--navy); box-shadow: 0 1px 2px rgba(18,41,74,.12); }
+
+.phrase { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
+.phrase .kr { font-weight: 800; color: var(--navy); font-size: 1.05rem; }
+.phrase .tr { color: var(--muted); font-size: .9rem; }
+.phrase .note { font-size: .8rem; color: var(--ocean); font-weight: 700; }
+
+/* Exercise */
+.ex-top { display: flex; align-items: center; gap: 12px; }
+.prompt-kr { font-family: var(--display); font-size: 1.7rem; font-weight: 800; color: var(--navy); line-height: 1.2; }
+.prompt-tr { font-size: 1.3rem; font-weight: 800; color: var(--ink); }
+.answer-input { width: 100%; border: 2px solid var(--line); border-radius: 16px; padding: 14px 16px; font-size: 1.1rem; font-weight: 700; background: var(--card); }
+.answer-input:focus { border-color: var(--ocean); outline: none; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid var(--line); background: var(--card); border-radius: 12px; padding: 8px 12px; font-weight: 800; box-shadow: 0 3px 0 var(--line); }
+.chip.used { visibility: hidden; }
+.chip.active { background: var(--navy); color: #fff; border-color: var(--navy); box-shadow: none; }
+.slot { min-height: 58px; border-bottom: 2px dashed var(--line); padding-bottom: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-content: flex-start; }
+.match { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.match .choice { justify-content: center; text-align: center; min-height: 58px; font-size: .95rem; }
+.match .choice.gone { visibility: hidden; }
+.feedback { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding-block: 16px calc(16px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); border-top: 2px solid; }
+.feedback .inner { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.feedback.ok { background: var(--ok-bg); border-color: var(--ok); color: #0F5C35; }
+.feedback.bad { background: var(--bad-bg); border-color: var(--bad); color: #7D241E; }
+.feedback .title { font-family: var(--display); font-size: 1.3rem; font-weight: 800; }
+.footer-bar { position: sticky; bottom: 0; padding-top: 12px; background: linear-gradient(180deg, rgba(251,246,236,0), var(--cream) 30%); margin-top: auto; }
+
+/* Search */
+.search { width: 100%; border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px 12px 42px; background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%235D6E86' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='9' r='6'/%3E%3Cpath d='m14 14 4 4'/%3E%3C/svg%3E") no-repeat 14px center; font-weight: 600; }
+.filter-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.filter-row::-webkit-scrollbar { display: none; }
+.pill { flex: none; border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 800; background: var(--sand); color: var(--navy); }
+.pill[aria-pressed="true"] { background: var(--navy); color: #fff; }
+
+/* Support */
+.amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.amount { background: var(--card); border: 2px solid var(--line); border-radius: 18px; padding: 14px; text-align: left; box-shadow: 0 3px 0 var(--line); display: flex; flex-direction: column; gap: 2px; }
+.amount b { font-family: var(--display); font-size: 1.6rem; color: var(--navy); line-height: 1.1; }
+.amount span { font-size: .85rem; color: var(--muted); font-weight: 700; }
+.amount[aria-pressed="true"] { border-color: var(--ocean); background: #E6F2FD; box-shadow: 0 3px 0 var(--ocean); }
+.why { display: flex; gap: 14px; align-items: flex-start; }
+.why .ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; flex: none; background: #E6F2FD; color: var(--navy); }
+.notice { border-radius: 16px; padding: 12px 14px; background: #FFF4D6; border: 1px solid #F3D78A; color: #6B4E00; font-weight: 700; font-size: .9rem; }
+.field-label { font-weight: 800; font-size: .9rem; }
+.err { color: var(--bad); font-weight: 700; font-size: .875rem; }
+
+/* Bottom nav */
+.nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; background: var(--card); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px); }
+.nav .inner { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
+.nav button { background: none; border: 0; padding: 10px 2px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .7rem; font-weight: 800; color: var(--muted); }
+.nav button[aria-current="page"] { color: var(--navy); }
+.nav button[aria-current="page"] svg { stroke: var(--ocean); }
+.nav svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.splash { background: linear-gradient(180deg, var(--navy) 0%, #12569E 60%, var(--ocean) 100%); color: #fff; border-radius: 0 0 32px 32px; padding-block: 28px 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; overflow: hidden; }
+.splash h1 { color: #fff; font-size: 3rem; letter-spacing: -.01em; }
+.splash p { font-weight: 700; color: #DCEBFA; }
+.splash img { width: min(300px, 80%); margin-top: 8px; border-radius: 24px 24px 0 0; display: block; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom, 0px)); background: var(--navy); color: #fff; padding: 10px 16px; border-radius: 12px; font-weight: 700; z-index: 30; }
+
+/* Cover page */
+.cover { position: relative; min-height: 100vh; min-height: 100dvh; overflow: hidden; background: linear-gradient(180deg, #7CC8F0 0%, #CDEBFA 48%); }
+.cover .sky { position: absolute; inset: 0 0 50% 0; pointer-events: none; }
+.cover .sunball { position: absolute; right: 12%; top: 50%; width: 56px; height: 56px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 10px rgba(249,184,37,.2), 0 0 0 22px rgba(249,184,37,.09); }
+.cover .cloud { position: absolute; height: 20px; border-radius: 999px; background: rgba(255,255,255,.9); animation: drift 60s linear infinite; }
+.cover .cloud::before { content: ""; position: absolute; left: 18%; top: -11px; width: 44%; height: 24px; border-radius: 999px; background: inherit; }
+.cover .c1 { width: 100px; top: 62%; left: -25%; } .cover .c2 { width: 72px; top: 76%; left: -45%; animation-duration: 85s; animation-delay: -30s; }
+.cover-title { position: relative; z-index: 2; text-align: center; padding: max(64px, calc(env(safe-area-inset-top, 0px) + 48px)) 16px 0; }
+.cover-title h1 { font-size: 3.4rem; color: var(--navy); letter-spacing: -.01em; animation: rise 500ms var(--ease-out) both; }
+.cover-title p { font-weight: 800; color: #174F96; animation: rise 500ms 80ms var(--ease-out) both; }
+.cover .sea { position: absolute; left: 0; right: 0; bottom: 0; height: 52%; }
+.cover .sea::after { content: ""; position: absolute; left: 0; right: 0; top: 70px; bottom: 0; background: linear-gradient(180deg, #0B3D7A 0%, #072a55 100%); z-index: 1; }
+.cover .wave { position: absolute; left: 0; width: 200%; animation: swell 14s linear infinite; }
+.cover .w-back { top: -64px; height: 90px; opacity: .6; animation-duration: 22s; }
+.cover .w-mid { top: -34px; height: 90px; z-index: 1; animation-duration: 17s; animation-direction: reverse; }
+.cover .w-front { top: -6px; height: 80px; z-index: 1; animation-duration: 12s; }
+.cover .fin { position: absolute; top: -50px; width: 30px; animation: swim 16s linear infinite; }
+.cover .fin svg { display: block; animation: bob 2.4s ease-in-out infinite; }
+.cover .f2 { top: -22px; width: 24px; z-index: 1; animation-duration: 21s; animation-delay: -9s; animation-direction: reverse; }
+.cover .f2 svg { transform: scaleX(-1); }
+.cover .jumper { position: absolute; top: -20px; width: 96px; animation: leap 6s cubic-bezier(.45,.05,.55,.95) infinite; }
+.cover .j1 { left: 14%; }
+.cover .j2 { left: 60%; top: 0; width: 64px; animation-duration: 7.5s; animation-delay: -3.2s; }
+.cover .splashring { position: absolute; top: -18px; width: 72px; height: 16px; border: 3px solid rgba(255,255,255,.9); border-radius: 50%; opacity: 0; z-index: 1; animation: ring 6s ease-out infinite; }
+.cover .r1 { left: calc(14% + 12px); } .cover .r2 { left: calc(60% + 6px); top: 4px; width: 54px; animation-duration: 7.5s; animation-delay: -3.2s; }
+.cover-sound { position: absolute; top: max(12px, env(safe-area-inset-top, 0px)); right: 12px; z-index: 4; }
+.cover-sound .iconbtn { background: rgba(255,255,255,.75); border-radius: 50%; color: var(--navy); }
+.cover-login { display: block; width: 100%; margin-top: 14px; background: none; border: 0; color: #fff; font-weight: 800; text-decoration: underline; text-underline-offset: 3px; padding: 8px; }
+.cover-cta { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 0 20px max(32px, env(safe-area-inset-bottom, 0px)); max-width: 480px; margin: 0 auto; }
+@keyframes swell { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes drift { from { transform: translateX(0); } to { transform: translateX(160vw); } }
+@keyframes swim { from { left: -12%; } to { left: 108%; } }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+/* The shark rests under the front wave, then arcs up out of the water and dives back */
+@keyframes leap {
+  0%, 52% { transform: translate(0, 130px) rotate(-35deg); }
+  62% { transform: translate(28px, -90px) rotate(-12deg); }
+  70% { transform: translate(56px, -130px) rotate(8deg); }
+  80% { transform: translate(84px, -70px) rotate(32deg); }
+  90%, 100% { transform: translate(110px, 130px) rotate(55deg); }
+}
+@keyframes ring { 0%, 54% { opacity: 0; transform: scale(.6); } 58% { opacity: 1; transform: scale(.9); } 70% { opacity: 0; transform: scale(1.6); } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .cover .wave, .cover .cloud, .cover .fin, .cover .fin svg, .cover .splashring { animation: none !important; }
+  .cover .jumper { animation: none !important; transform: translateY(-110px); }
+  .cover .fin { left: 30%; } .cover .f2 { left: 70%; }
+  .cover .jumper { transform: translateY(-110px); }
+}
+
+/* Motion (Emil Kowalski's rules: strong ease-out, press feedback, short stagger) */
+:root { --ease-out: cubic-bezier(0.23, 1, 0.32, 1); --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1); }
+.choice, .lesson-item, .chip, .tabs button, .nav button, .amount { transition: transform 140ms var(--ease-out), border-color 160ms ease, background-color 160ms ease, box-shadow 140ms var(--ease-out); }
+.choice:active, .lesson-item:not(.locked):active, .chip:active, .amount:active { transform: translateY(2px) scale(.98); box-shadow: 0 1px 0 var(--line); }
+.tabs button:active, .nav button:active { transform: scale(.96); }
+@media (hover: hover) and (pointer: fine) { .choice:hover, .lesson-item:not(.locked):hover, .chip:hover { border-color: var(--ocean); } }
+.stagger > * { animation: rise 280ms var(--ease-out) both; }
+.stagger > *:nth-child(2) { animation-delay: 40ms; } .stagger > *:nth-child(3) { animation-delay: 80ms; } .stagger > *:nth-child(4) { animation-delay: 120ms; }
+.stagger > *:nth-child(5) { animation-delay: 160ms; } .stagger > *:nth-child(n+6) { animation-delay: 200ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { * { transition-property: opacity, background-color, border-color, color !important; } .stagger > *, .pop { animation: fade 200ms ease both !important; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+/* Djodje animation */
+.djwrap { position: relative; display: inline-flex; flex: none; }
+.dj { display: block; overflow: visible; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dj:focus { outline: none; }
+.dj:focus-visible { outline: 3px solid var(--ocean); outline-offset: 4px; border-radius: 16px; }
+.dj .b { transform-origin: 100px 210px; animation: djbreath 3.2s ease-in-out infinite; }
+.dj .tail { transform-origin: 138px 176px; animation: djtail 1.8s ease-in-out infinite; }
+.dj .eyes { transform-origin: 100px 70px; animation: djblink 5s infinite; }
+/* Decorative tracking: a soft spring-like curve so the eyes have momentum (Kowalski) */
+.dj .pupil { transition: transform 320ms cubic-bezier(.34,1.3,.64,1); }
+.dj .armL { transform-origin: 62px 140px; transition: transform 260ms cubic-bezier(.34,1.3,.64,1); }
+.dj .armR { transform-origin: 138px 140px; transition: transform 260ms cubic-bezier(.34,1.3,.64,1); }
+.dj.up .armL { transform: rotate(100deg); }
+.dj.up .armR { transform: rotate(-100deg); }
+.dj.wave .armR, .dj.poke .armR { animation: djwave .9s ease-in-out infinite; }
+.dj.encourage .armR { transform: rotate(-70deg); }
+.dj.celebrate .b, .dj.excited .b { animation: djhop 1s ease-in-out infinite; }
+.dj.sleep .b { animation-duration: 5s; }
+.dj.poke .b { animation: djjump 560ms cubic-bezier(0.23, 1, 0.32, 1); }
+.dj:active .b { transform: scale(.97); }
+.dj .float { animation: djfloat 2.4s ease-in-out infinite; }
+.dj .spark { animation: djspark 1.2s ease-in-out infinite; transform-origin: 100px 50px; }
+.dj .zzz { animation: djfloat 3s ease-in-out infinite; }
+.dj .confetti { animation: djspark 1.4s ease-in-out infinite; transform-origin: 100px 40px; }
+@keyframes djbreath { 0%,100% { transform: translateY(0) scale(1,1); } 50% { transform: translateY(-3px) scale(1.01,.99); } }
+@keyframes djtail { 0%,100% { transform: rotate(4deg); } 50% { transform: rotate(-12deg); } }
+@keyframes djblink { 0%,93%,100% { transform: scaleY(1); } 95% { transform: scaleY(.08); } }
+@keyframes djwave { 0%,100% { transform: rotate(-80deg); } 50% { transform: rotate(-125deg); } }
+@keyframes djhop { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 60% { transform: translateY(-10px); } }
+@keyframes djjump { 0% { transform: translateY(0) scale(1,1); } 20% { transform: translateY(4px) scale(1.06,.92); } 50% { transform: translateY(-24px) scale(.96,1.05); } 80% { transform: translateY(2px) scale(1.03,.97); } 100% { transform: translateY(0) scale(1,1); } }
+@keyframes djfloat { 0%,100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(-6px); opacity: .7; } }
+@keyframes djspark { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: .6; } }
+.djsay { position: absolute; left: 70%; top: -4px; background: var(--navy); color: #fff; border-radius: 14px; padding: 8px 12px; white-space: nowrap; display: flex; flex-direction: column; align-items: center; z-index: 5; transform-origin: 14px 100%; animation: djsayin 200ms cubic-bezier(0.23, 1, 0.32, 1); box-shadow: 0 6px 16px rgba(11,61,122,.25); }
+.djsay small { color: #DCEBFA; font-size: .75rem; }
+.djsay::after { content: ""; position: absolute; bottom: -6px; left: 14px; border: 6px solid transparent; border-bottom: 0; border-top-color: var(--navy); }
+.splash .djwrap { margin-top: 12px; padding: 10px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 70%); }
+@keyframes djsayin { from { opacity: 0; transform: scale(.94) translateY(4px); } to { opacity: 1; transform: none; } }
+/* Reduced motion: no movement, keep the bubble fade so the phrase still reads */
+@media (prefers-reduced-motion: reduce) { .dj * { animation: none !important; transition: none !important; } .djsay { animation: fade 200ms ease !important; } }
+
+@keyframes pop { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pop { animation: pop 220ms var(--ease-out); }
+</style>
+
+<div class="app" id="app"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ---- Config ----
+const MASCOT_NAME = "Djodje";
+// Email accounts (public site): Supabase project. The anon key is public by design; Row Level Security protects each person's row.
+const SUPABASE_URL = "https://pftkobftshnfjubquvrg.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_fSSpBi3LRjrAMHPofNgApw_jSX4Qb3N";
+// Stripe Payment Links (créés dans le tableau de bord Stripe). Laisser vide tant que Stripe n'est pas configuré.
+const STRIPE_LINKS = { "2": "https://donate.stripe.com/fZu5kFelWap81ph8CE5c400", "5": "https://donate.stripe.com/9B6cN791C7cWfg72eg5c401", "10": "https://donate.stripe.com/eVq9AVelWeFofg7g565c402", "libre": "https://donate.stripe.com/14A5kF4Lmap82tl5qs5c403" };
+
+const CONTENT = {"orthographe": "ALUPEC", "groupes": {"sotavento": {"nom": "Sotavento", "iles": ["Santiago", "Brava", "Fogo", "Maio"]}, "barlavento": {"nom": "Barlavento", "iles": ["São Vicente", "Santo Antão", "São Nicolau", "Sal", "Boa Vista"]}}, "variantes": {"santiago": {"nom": "Santiago", "groupe": "sotavento", "disponible": true}}, "lecons": [{"id": "L01", "titre_fr": "Salutations", "entrees": [{"id": "L01-01", "formes": {"santiago": {"texte": "Bon dia", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Bonjour (matin)", "en": "Good morning", "pt": "Bom dia", "nl": "Goedemorgen", "es": "Buenos días"}, "note": null}, {"id": "L01-02", "formes": {"santiago": {"texte": "Bo tardi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Bon après-midi", "en": "Good afternoon", "pt": "Boa tarde", "nl": "Goedemiddag", "es": "Buenas tardes"}, "note": null}, {"id": "L01-03", "formes": {"santiago": {"texte": "Bo noti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Bonsoir / Bonne nuit", "en": "Good evening / Good night", "pt": "Boa noite", "nl": "Goedenavond / Goedenacht", "es": "Buenas noches"}, "note": null}, {"id": "L01-04", "formes": {"santiago": {"texte": "Modi ki bu sta?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Comment vas-tu ?", "en": "How are you?", "pt": "Como estás?", "nl": "Hoe gaat het met je?", "es": "¿Cómo estás?"}, "note": "Forme typique de Santiago"}, {"id": "L01-05", "formes": {"santiago": {"texte": "N sta dretu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je vais bien", "en": "I'm fine", "pt": "Estou bem", "nl": "Het gaat goed met me", "es": "Estoy bien"}, "note": null}, {"id": "L01-06", "formes": {"santiago": {"texte": "Tudu dretu?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Tout va bien ?", "en": "All good?", "pt": "Tudo bem?", "nl": "Alles goed?", "es": "¿Todo bien?"}, "note": null}, {"id": "L01-07", "formes": {"santiago": {"texte": "Obrigadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Merci", "en": "Thank you", "pt": "Obrigado", "nl": "Dank je", "es": "Gracias"}, "note": null}, {"id": "L01-08", "formes": {"santiago": {"texte": "Di nada", "audio": null, "statut": "valide"}}, "traductions": {"fr": "De rien", "en": "You're welcome", "pt": "De nada", "nl": "Graag gedaan", "es": "De nada"}, "note": null}, {"id": "L01-09", "formes": {"santiago": {"texte": "Pur favor", "audio": null, "statut": "valide"}}, "traductions": {"fr": "S'il te plaît", "en": "Please", "pt": "Por favor", "nl": "Alsjeblieft", "es": "Por favor"}, "note": null}, {"id": "L01-10", "formes": {"santiago": {"texte": "Diskulpa", "audio": null, "statut": "valide", "variantes_acceptees": ["Diskulpan"]}}, "traductions": {"fr": "Pardon / Excuse-moi", "en": "Sorry / Excuse me", "pt": "Desculpa", "nl": "Sorry / Pardon", "es": "Perdón / Disculpa"}, "note": null}, {"id": "L01-11", "formes": {"santiago": {"texte": "Txau", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Salut (au revoir)", "en": "Bye", "pt": "Tchau", "nl": "Doei", "es": "Chao"}, "note": null}, {"id": "L01-12", "formes": {"santiago": {"texte": "Ti manhan", "audio": null, "statut": "valide"}}, "traductions": {"fr": "À demain", "en": "See you tomorrow", "pt": "Até amanhã", "nl": "Tot morgen", "es": "Hasta mañana"}, "note": null}]}, {"id": "L02", "titre_fr": "Se présenter", "entrees": [{"id": "L02-01", "formes": {"santiago": {"texte": "Modi ki bu txoma?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Comment tu t'appelles ?", "en": "What's your name?", "pt": "Como te chamas?", "nl": "Hoe heet je?", "es": "¿Cómo te llamas?"}, "note": null}, {"id": "L02-02", "formes": {"santiago": {"texte": "N ta txoma Djon", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je m'appelle Djon", "en": "My name is Djon", "pt": "Chamo-me Djon", "nl": "Ik heet Djon", "es": "Me llamo Djon"}, "note": null}, {"id": "L02-03", "formes": {"santiago": {"texte": "Nha nomi é Maria", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Mon nom est Maria", "en": "My name is Maria", "pt": "O meu nome é Maria", "nl": "Mijn naam is Maria", "es": "Mi nombre es María"}, "note": null}, {"id": "L02-04", "formes": {"santiago": {"texte": "Di undi ki bu é?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "D'où viens-tu ?", "en": "Where are you from?", "pt": "De onde és?", "nl": "Waar kom je vandaan?", "es": "¿De dónde eres?"}, "note": null}, {"id": "L02-05", "formes": {"santiago": {"texte": "N é di Santiagu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je suis de Santiago", "en": "I'm from Santiago", "pt": "Sou de Santiago", "nl": "Ik kom uit Santiago", "es": "Soy de Santiago"}, "note": null}, {"id": "L02-06", "formes": {"santiago": {"texte": "N é kabuverdianu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je suis cap-verdien", "en": "I'm Cape Verdean", "pt": "Sou cabo-verdiano", "nl": "Ik ben Kaapverdiaan", "es": "Soy caboverdiano"}, "note": null}, {"id": "L02-07", "formes": {"santiago": {"texte": "N ta mora na Fransa", "audio": null, "statut": "valide"}}, "traductions": {"fr": "J'habite en France", "en": "I live in France", "pt": "Moro em França", "nl": "Ik woon in Frankrijk", "es": "Vivo en Francia"}, "note": null}, {"id": "L02-08", "formes": {"santiago": {"texte": "Undi ki bu ta mora?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Où habites-tu ?", "en": "Where do you live?", "pt": "Onde moras?", "nl": "Waar woon je?", "es": "¿Dónde vives?"}, "note": null}, {"id": "L02-09", "formes": {"santiago": {"texte": "N tene vinti anu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "J'ai vingt ans", "en": "I'm twenty years old", "pt": "Tenho vinte anos", "nl": "Ik ben twintig jaar", "es": "Tengo veinte años"}, "note": null}, {"id": "L02-10", "formes": {"santiago": {"texte": "Prazer", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Enchanté(e)", "en": "Nice to meet you", "pt": "Prazer", "nl": "Aangenaam", "es": "Encantado/a"}, "note": null}]}, {"id": "L03", "titre_fr": "La famille", "entrees": [{"id": "L03-01", "formes": {"santiago": {"texte": "mai", "audio": null, "statut": "valide"}}, "traductions": {"fr": "mère", "en": "mother", "pt": "mãe", "nl": "moeder", "es": "madre"}, "note": null}, {"id": "L03-02", "formes": {"santiago": {"texte": "pai", "audio": null, "statut": "valide"}}, "traductions": {"fr": "père", "en": "father", "pt": "pai", "nl": "vader", "es": "padre"}, "note": null}, {"id": "L03-03", "formes": {"santiago": {"texte": "fidju", "audio": null, "statut": "valide"}}, "traductions": {"fr": "enfant (fils/fille)", "en": "child (son/daughter)", "pt": "filho/filha", "nl": "kind (zoon/dochter)", "es": "hijo/hija"}, "note": null}, {"id": "L03-04", "formes": {"santiago": {"texte": "irmon", "audio": null, "statut": "valide"}}, "traductions": {"fr": "frère / sœur", "en": "brother / sister", "pt": "irmão / irmã", "nl": "broer / zus", "es": "hermano / hermana"}, "note": null}, {"id": "L03-05", "formes": {"santiago": {"texte": "avó / Dona", "audio": null, "statut": "valide"}}, "traductions": {"fr": "grand-mère", "en": "grandmother", "pt": "avó", "nl": "oma", "es": "abuela"}, "note": null}, {"id": "L03-06", "formes": {"santiago": {"texte": "avô /Dono", "audio": null, "statut": "valide"}}, "traductions": {"fr": "grand-père", "en": "grandfather", "pt": "avô", "nl": "opa", "es": "abuelo"}, "note": null}, {"id": "L03-07", "formes": {"santiago": {"texte": "tiu / tia", "audio": null, "statut": "valide"}}, "traductions": {"fr": "oncle / tante", "en": "uncle / aunt", "pt": "tio / tia", "nl": "oom / tante", "es": "tío / tía"}, "note": null}, {"id": "L03-08", "formes": {"santiago": {"texte": "primu / prima", "audio": null, "statut": "valide"}}, "traductions": {"fr": "cousin / cousine", "en": "cousin", "pt": "primo / prima", "nl": "neef / nicht", "es": "primo / prima"}, "note": null}, {"id": "L03-09", "formes": {"santiago": {"texte": "mininu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "garçon / enfant", "en": "boy / kid", "pt": "menino", "nl": "jongen / kind", "es": "niño"}, "note": null}, {"id": "L03-10", "formes": {"santiago": {"texte": "familia", "audio": null, "statut": "valide"}}, "traductions": {"fr": "famille", "en": "family", "pt": "família", "nl": "familie", "es": "familia"}, "note": null}, {"id": "L03-11", "formes": {"santiago": {"texte": "Nha mai sta na Kabu Verdi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Ma mère est au Cap-Vert", "en": "My mother is in Cape Verde", "pt": "A minha mãe está em Cabo Verde", "nl": "Mijn moeder is in Kaapverdië", "es": "Mi madre está en Cabo Verde"}, "note": null}]}, {"id": "L04", "titre_fr": "Les chiffres", "entrees": [{"id": "L04-01", "formes": {"santiago": {"texte": "un", "audio": null, "statut": "valide"}}, "traductions": {"fr": "un", "en": "one", "pt": "um", "nl": "één", "es": "uno"}, "note": null}, {"id": "L04-02", "formes": {"santiago": {"texte": "dos", "audio": null, "statut": "valide"}}, "traductions": {"fr": "deux", "en": "two", "pt": "dois", "nl": "twee", "es": "dos"}, "note": null}, {"id": "L04-03", "formes": {"santiago": {"texte": "tres", "audio": null, "statut": "valide"}}, "traductions": {"fr": "trois", "en": "three", "pt": "três", "nl": "drie", "es": "tres"}, "note": null}, {"id": "L04-04", "formes": {"santiago": {"texte": "kuatu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "quatre", "en": "four", "pt": "quatro", "nl": "vier", "es": "cuatro"}, "note": null}, {"id": "L04-05", "formes": {"santiago": {"texte": "sinku", "audio": null, "statut": "valide"}}, "traductions": {"fr": "cinq", "en": "five", "pt": "cinco", "nl": "vijf", "es": "cinco"}, "note": null}, {"id": "L04-06", "formes": {"santiago": {"texte": "seis", "audio": null, "statut": "valide"}}, "traductions": {"fr": "six", "en": "six", "pt": "seis", "nl": "zes", "es": "seis"}, "note": null}, {"id": "L04-07", "formes": {"santiago": {"texte": "seti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "sept", "en": "seven", "pt": "sete", "nl": "zeven", "es": "siete"}, "note": null}, {"id": "L04-08", "formes": {"santiago": {"texte": "oitu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "huit", "en": "eight", "pt": "oito", "nl": "acht", "es": "ocho"}, "note": null}, {"id": "L04-09", "formes": {"santiago": {"texte": "novi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "neuf", "en": "nine", "pt": "nove", "nl": "negen", "es": "nueve"}, "note": null}, {"id": "L04-10", "formes": {"santiago": {"texte": "dés", "audio": null, "statut": "valide"}}, "traductions": {"fr": "dix", "en": "ten", "pt": "dez", "nl": "tien", "es": "diez"}, "note": null}, {"id": "L04-11", "formes": {"santiago": {"texte": "vinti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "vingt", "en": "twenty", "pt": "vinte", "nl": "twintig", "es": "veinte"}, "note": null}]}, {"id": "L05", "titre_fr": "La nourriture", "entrees": [{"id": "L05-01", "formes": {"santiago": {"texte": "katxupa", "audio": null, "statut": "valide"}}, "traductions": {"fr": "cachupa (plat national)", "en": "cachupa (national dish)", "pt": "cachupa", "nl": "cachupa (nationaal gerecht)", "es": "cachupa (plato nacional)"}, "note": null}, {"id": "L05-02", "formes": {"santiago": {"texte": "pon", "audio": null, "statut": "valide"}}, "traductions": {"fr": "pain", "en": "bread", "pt": "pão", "nl": "brood", "es": "pan"}, "note": null}, {"id": "L05-03", "formes": {"santiago": {"texte": "agu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "eau", "en": "water", "pt": "água", "nl": "water", "es": "agua"}, "note": null}, {"id": "L05-04", "formes": {"santiago": {"texte": "kafé", "audio": null, "statut": "valide"}}, "traductions": {"fr": "café", "en": "coffee", "pt": "café", "nl": "koffie", "es": "café"}, "note": null}, {"id": "L05-05", "formes": {"santiago": {"texte": "pexi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "poisson", "en": "fish", "pt": "peixe", "nl": "vis", "es": "pescado"}, "note": null}, {"id": "L05-06", "formes": {"santiago": {"texte": "karni", "audio": null, "statut": "valide"}}, "traductions": {"fr": "viande", "en": "meat", "pt": "carne", "nl": "vlees", "es": "carne"}, "note": null}, {"id": "L05-07", "formes": {"santiago": {"texte": "aros", "audio": null, "statut": "valide"}}, "traductions": {"fr": "riz", "en": "rice", "pt": "arroz", "nl": "rijst", "es": "arroz"}, "note": null}, {"id": "L05-08", "formes": {"santiago": {"texte": "fijon", "audio": null, "statut": "valide"}}, "traductions": {"fr": "haricots", "en": "beans", "pt": "feijão", "nl": "bonen", "es": "frijoles"}, "note": null}, {"id": "L05-09", "formes": {"santiago": {"texte": "midju", "audio": null, "statut": "valide"}}, "traductions": {"fr": "maïs", "en": "corn", "pt": "milho", "nl": "maïs", "es": "maíz"}, "note": null}, {"id": "L05-10", "formes": {"santiago": {"texte": "N teni fomi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "J'ai faim", "en": "I'm hungry", "pt": "Tenho fome", "nl": "Ik heb honger", "es": "Tengo hambre"}, "note": null}, {"id": "L05-11", "formes": {"santiago": {"texte": "N kre agu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je veux de l'eau", "en": "I want water", "pt": "Quero água", "nl": "Ik wil water", "es": "Quiero agua"}, "note": null}, {"id": "L05-12", "formes": {"santiago": {"texte": "Sabi!", "audio": null, "statut": "valide"}}, "traductions": {"fr": "C'est bon ! (délicieux)", "en": "Tasty!", "pt": "Que gostoso!", "nl": "Lekker!", "es": "¡Qué rico!"}, "note": null}]}, {"id": "L06", "titre_fr": "La maison", "entrees": [{"id": "L06-01", "formes": {"santiago": {"texte": "kasa", "audio": null, "statut": "valide"}}, "traductions": {"fr": "maison", "en": "house", "pt": "casa", "nl": "huis", "es": "casa"}, "note": null}, {"id": "L06-02", "formes": {"santiago": {"texte": "porta", "audio": null, "statut": "valide"}}, "traductions": {"fr": "porte", "en": "door", "pt": "porta", "nl": "deur", "es": "puerta"}, "note": null}, {"id": "L06-03", "formes": {"santiago": {"texte": "janela", "audio": null, "statut": "valide"}}, "traductions": {"fr": "fenêtre", "en": "window", "pt": "janela", "nl": "raam", "es": "ventana"}, "note": null}, {"id": "L06-04", "formes": {"santiago": {"texte": "mesa", "audio": null, "statut": "valide"}}, "traductions": {"fr": "table", "en": "table", "pt": "mesa", "nl": "tafel", "es": "mesa"}, "note": null}, {"id": "L06-05", "formes": {"santiago": {"texte": "kadera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "chaise", "en": "chair", "pt": "cadeira", "nl": "stoel", "es": "silla"}, "note": null}, {"id": "L06-06", "formes": {"santiago": {"texte": "kama", "audio": null, "statut": "valide"}}, "traductions": {"fr": "lit", "en": "bed", "pt": "cama", "nl": "bed", "es": "cama"}, "note": null}, {"id": "L06-07", "formes": {"santiago": {"texte": "kuzinha", "audio": null, "statut": "valide"}}, "traductions": {"fr": "cuisine", "en": "kitchen", "pt": "cozinha", "nl": "keuken", "es": "cocina"}, "note": null}, {"id": "L06-08", "formes": {"santiago": {"texte": "kuartu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "chambre", "en": "bedroom", "pt": "quarto", "nl": "slaapkamer", "es": "habitación"}, "note": null}, {"id": "L06-09", "formes": {"santiago": {"texte": "Entra, fika à vontadi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Entre, fais comme chez toi", "en": "Come in, make yourself at home", "pt": "Entra, fica à vontade", "nl": "Kom binnen, doe alsof je thuis bent", "es": "Entra, ponte cómodo"}, "note": null}, {"id": "L06-10", "formes": {"santiago": {"texte": "Nha kasa é bu kasa", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Ma maison est ta maison", "en": "My house is your house", "pt": "A minha casa é a tua casa", "nl": "Mijn huis is jouw huis", "es": "Mi casa es tu casa"}, "note": null}]}, {"id": "L07", "titre_fr": "Les jours et l'heure", "entrees": [{"id": "L07-01", "formes": {"santiago": {"texte": "oji", "audio": null, "statut": "valide"}}, "traductions": {"fr": "aujourd'hui", "en": "today", "pt": "hoje", "nl": "vandaag", "es": "hoy"}, "note": null}, {"id": "L07-02", "formes": {"santiago": {"texte": "manhan", "audio": null, "statut": "valide"}}, "traductions": {"fr": "demain", "en": "tomorrow", "pt": "amanhã", "nl": "morgen", "es": "mañana"}, "note": null}, {"id": "L07-03", "formes": {"santiago": {"texte": "onti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "hier", "en": "yesterday", "pt": "ontem", "nl": "gisteren", "es": "ayer"}, "note": null}, {"id": "L07-04", "formes": {"santiago": {"texte": "simana", "audio": null, "statut": "valide"}}, "traductions": {"fr": "semaine", "en": "week", "pt": "semana", "nl": "week", "es": "semana"}, "note": null}, {"id": "L07-05", "formes": {"santiago": {"texte": "sigunda-fera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "lundi", "en": "Monday", "pt": "segunda-feira", "nl": "maandag", "es": "lunes"}, "note": null}, {"id": "L07-06", "formes": {"santiago": {"texte": "tersa-fera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "mardi", "en": "Tuesday", "pt": "terça-feira", "nl": "dinsdag", "es": "martes"}, "note": null}, {"id": "L07-07", "formes": {"santiago": {"texte": "kuarta-fera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "mercredi", "en": "Wednesday", "pt": "quarta-feira", "nl": "woensdag", "es": "miércoles"}, "note": null}, {"id": "L07-08", "formes": {"santiago": {"texte": "kinta-fera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "jeudi", "en": "Thursday", "pt": "quinta-feira", "nl": "donderdag", "es": "jueves"}, "note": null}, {"id": "L07-09", "formes": {"santiago": {"texte": "sesta-fera", "audio": null, "statut": "valide"}}, "traductions": {"fr": "vendredi", "en": "Friday", "pt": "sexta-feira", "nl": "vrijdag", "es": "viernes"}, "note": null}, {"id": "L07-10", "formes": {"santiago": {"texte": "sábadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "samedi", "en": "Saturday", "pt": "sábado", "nl": "zaterdag", "es": "sábado"}, "note": null}, {"id": "L07-11", "formes": {"santiago": {"texte": "dumingu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "dimanche", "en": "Sunday", "pt": "domingo", "nl": "zondag", "es": "domingo"}, "note": null}, {"id": "L07-12", "formes": {"santiago": {"texte": "Ki ora ki é?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Quelle heure est-il ?", "en": "What time is it?", "pt": "Que horas são?", "nl": "Hoe laat is het?", "es": "¿Qué hora es?"}, "note": null}]}, {"id": "L08", "titre_fr": "Au marché", "entrees": [{"id": "L08-01", "formes": {"santiago": {"texte": "merkadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "marché", "en": "market", "pt": "mercado", "nl": "markt", "es": "mercado"}, "note": null}, {"id": "L08-02", "formes": {"santiago": {"texte": "Kantu ki kusta?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Combien ça coûte ?", "en": "How much does it cost?", "pt": "Quanto custa?", "nl": "Hoeveel kost het?", "es": "¿Cuánto cuesta?"}, "note": null}, {"id": "L08-03", "formes": {"santiago": {"texte": "Karu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "cher", "en": "Expensive", "pt": "Caro", "nl": "Duur", "es": "Caro"}, "note": null}, {"id": "L08-04", "formes": {"santiago": {"texte": "Baratu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Pas cher", "en": "Cheap", "pt": "Barato", "nl": "Goedkoop", "es": "Barato"}, "note": null}, {"id": "L08-05", "formes": {"santiago": {"texte": "dinheru", "audio": null, "statut": "valide"}}, "traductions": {"fr": "argent", "en": "money", "pt": "dinheiro", "nl": "geld", "es": "dinero"}, "note": null}, {"id": "L08-06", "formes": {"santiago": {"texte": "N kre kumpra banana", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je veux acheter des bananes", "en": "I want to buy bananas", "pt": "Quero comprar bananas", "nl": "Ik wil bananen kopen", "es": "Quiero comprar plátanos"}, "note": null}, {"id": "L08-07", "formes": {"santiago": {"texte": "Bu tene mangui?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Tu as des mangues ?", "en": "Do you have mangoes?", "pt": "Tens mangas?", "nl": "Heb je mango's?", "es": "¿Tienes mangos?"}, "note": null}, {"id": "L08-08", "formes": {"santiago": {"texte": "Da-m un kilu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Donne-moi un kilo", "en": "Give me a kilo", "pt": "Dá-me um quilo", "nl": "Geef me een kilo", "es": "Dame un kilo"}, "note": null}, {"id": "L08-09", "formes": {"santiago": {"texte": "Mutu obrigadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Merci beaucoup", "en": "Thank you very much", "pt": "Muito obrigado", "nl": "Heel erg bedankt", "es": "Muchas gracias"}, "note": null}]}, {"id": "L09", "titre_fr": "Les sentiments", "entrees": [{"id": "L09-01", "formes": {"santiago": {"texte": "kontenti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "content / heureux", "en": "happy", "pt": "contente", "nl": "blij", "es": "contento"}, "note": null}, {"id": "L09-02", "formes": {"santiago": {"texte": "tristi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "triste", "en": "sad", "pt": "triste", "nl": "verdrietig", "es": "triste"}, "note": null}, {"id": "L09-03", "formes": {"santiago": {"texte": "kansadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "fatigué", "en": "tired", "pt": "cansado", "nl": "moe", "es": "cansado"}, "note": null}, {"id": "L09-04", "formes": {"santiago": {"texte": "N sta kontenti", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je suis content", "en": "I'm happy", "pt": "Estou contente", "nl": "Ik ben blij", "es": "Estoy contento"}, "note": null}, {"id": "L09-05", "formes": {"santiago": {"texte": "N sta kansadu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je suis fatigué", "en": "I'm tired", "pt": "Estou cansado", "nl": "Ik ben moe", "es": "Estoy cansado"}, "note": null}, {"id": "L09-06", "formes": {"santiago": {"texte": "N gosta di bo", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je t'aime / Je t'apprécie", "en": "I like you / I love you", "pt": "Gosto de ti", "nl": "Ik hou van je", "es": "Te quiero"}, "note": null}, {"id": "L09-07", "formes": {"santiago": {"texte": "Sodadi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Le manque, la nostalgie", "en": "Longing, missing someone", "pt": "Saudade", "nl": "Heimwee, gemis", "es": "Nostalgia, añoranza"}, "note": "Mot clé de la culture cap-verdienne"}, {"id": "L09-08", "formes": {"santiago": {"texte": "N tene sodadi di bo", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Tu me manques", "en": "I miss you", "pt": "Tenho saudades tuas", "nl": "Ik mis je", "es": "Te extraño"}, "note": null}, {"id": "L09-09", "formes": {"santiago": {"texte": "Ka bu fika tristi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Ne sois pas triste", "en": "Don't be sad", "pt": "Não fiques triste", "nl": "Wees niet verdrietig", "es": "No estés triste"}, "note": null}]}, {"id": "L10", "titre_fr": "Expressions courantes", "entrees": [{"id": "L10-01", "formes": {"santiago": {"texte": "Morabeza", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Hospitalité, accueil chaleureux", "en": "Warm hospitality", "pt": "Hospitalidade, simpatia", "nl": "Gastvrijheid", "es": "Hospitalidad"}, "note": "Valeur culturelle cap-verdienne"}, {"id": "L10-02", "formes": {"santiago": {"texte": "Nu bai!", "audio": null, "statut": "valide"}}, "traductions": {"fr": "On y va !", "en": "Let's go!", "pt": "Vamos!", "nl": "Kom op! / Laten we gaan!", "es": "¡Vamos!"}, "note": null}, {"id": "L10-03", "formes": {"santiago": {"texte": "Ka ten problema", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Pas de problème", "en": "No problem", "pt": "Não há problema", "nl": "Geen probleem", "es": "No hay problema"}, "note": null}, {"id": "L10-04", "formes": {"santiago": {"texte": "N ka sabi", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je ne sais pas", "en": "I don't know", "pt": "Não sei", "nl": "Ik weet het niet", "es": "No sé"}, "note": null}, {"id": "L10-05", "formes": {"santiago": {"texte": "N ka ta konprende", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Je ne comprends pas", "en": "I don't understand", "pt": "Não compreendo", "nl": "Ik begrijp het niet", "es": "No entiendo"}, "note": null}, {"id": "L10-06", "formes": {"santiago": {"texte": "Bu podi ripiti?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Tu peux répéter ?", "en": "Can you repeat?", "pt": "Podes repetir?", "nl": "Kun je dat herhalen?", "es": "¿Puedes repetir?"}, "note": null}, {"id": "L10-07", "formes": {"santiago": {"texte": "Fla más divagar", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Parle plus lentement", "en": "Speak more slowly", "pt": "Fala mais devagar", "nl": "Praat langzamer", "es": "Habla más despacio"}, "note": null}, {"id": "L10-08", "formes": {"santiago": {"texte": "Sin", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Oui", "en": "Yes", "pt": "Sim", "nl": "Ja", "es": "Sí"}, "note": null}, {"id": "L10-09", "formes": {"santiago": {"texte": "Nau", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Non", "en": "No", "pt": "Não", "nl": "Nee", "es": "No"}, "note": null}, {"id": "L10-10", "formes": {"santiago": {"texte": "Kuzé ki é kel-li?", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Qu'est-ce que c'est ?", "en": "What is this?", "pt": "O que é isto?", "nl": "Wat is dit?", "es": "¿Qué es esto?"}, "note": null}, {"id": "L10-11", "formes": {"santiago": {"texte": "Nos kriolu", "audio": null, "statut": "valide"}}, "traductions": {"fr": "Notre créole", "en": "Our Creole", "pt": "O nosso crioulo", "nl": "Ons Creools", "es": "Nuestro criollo"}, "note": "Nom de l'appli"}]}]};
+const VARIANT = "santiago";
+const LANGS = { en: "English", nl: "Nederlands", pt: "Português", fr: "Français", es: "Español" };
+
+// ---- UI text (5 languages) ----
+const T = {
+en: {
+  auth_t: "Create your account or sign in", auth_why: "Sign in with your email to keep your progress on all your devices.", email_label: "Your email", email_send: "Email me a sign-in link", email_how: "No password: we send you a link, you tap it, and you are in. New here? The same link creates your account.", email_sent_t: "Check your inbox", email_sent: "We sent you a sign-in link. Open it on this device to continue.", email_again: "Use another email", email_bad: "Please enter a valid email address.", email_fail: "We couldn't send the email. Please try again in a moment.", cover_login: "Sign up or sign in with my email",
+  snd_on: "Turn sound on", snd_off: "Turn sound off", set_sound: "Sounds",
+  cover_hi: "Welcome back!", logout: "Sign out", login: "Sign in to my profile", logout_done: "You are signed out.", signed_out_p: "You are signed out. Your progress stays safe in your profile; sign in again to get it back.", logout_p: "Signing out removes your progress from this device. It stays saved in your profile.",
+  prof_cloud: "Your progress is saved to your profile and follows you on every device where you sign in.",
+  tagline: "Learn Kriolu. Live our culture.", start: "Get started", cont: "Continue", back: "Back",
+  ob_hi: "Hi! I'm {name}.", ob_hi_sub: "I'll be your companion for learning Kriolu.",
+  ob_lang: "Which language do you speak best?", ob_var: "Which Kriolu do you want to learn?",
+  ob_var_sub: "Each island has its own way of speaking. We start with Santiago.", soon: "Coming soon",
+  nav_home: "Home", nav_lessons: "Lessons", nav_practice: "Practice", nav_vocab: "Vocabulary", nav_profile: "Profile",
+  home_sub: "Keep going with your Kriolu journey.", course: "Santiago · Sotavento", lessons_of: "{a}/{b} lessons",
+  today: "Today's lesson", all_done: "You finished every lesson! Review them in Practice.", resume: "Continue",
+  st_streak: "day streak", st_lessons: "lessons done", st_acc: "correct answers",
+  culture_card: "Discover Santiago", culture_card_sub: "Music, history and words of the island.",
+  support_card: "Support Mar Azul", support_card_sub: "Help us create more lessons.", see_progress: "See my progress",
+  away: "{name} missed you! Let's pick up where you left off.",
+  lessons_t: "Lessons", lesson_n: "Lesson {n}", n_items: "{n} words and phrases", locked: "Finish the previous lesson first", done: "Done",
+  tab_learn: "Learn", tab_practice: "Practice", tab_culture: "Culture", start_practice: "Start practice",
+  culture_none: "No culture notes in this lesson yet.", listen: "Listen",
+  q_tr: "What does this mean?", q_kr: "How do you say this in Kriolu?", q_type: "Write this in Kriolu", q_order: "Put the words in order", q_match: "Match the pairs",
+  type_ph: "Type in Kriolu…", accents: "Accents are optional.", check: "Check", correct: "Correct!", wrong: "Not quite. The answer is:", next: "Next", quit: "Quit",
+  fin_t: "Lesson complete!", fin_acc: "{n}% correct", fin_xp: "+{n} XP", back_lessons: "Back to lessons", again: "Practice again",
+  prac_t: "Practice", prac_sub: "A mixed review of the lessons you've finished.", prac_empty: "Finish your first lesson, then come back here to review it.", prac_start: "Start review",
+  vocab_t: "Vocabulary", search: "Search a word…", all: "All", none: "No words match “{q}”.",
+  cult_t: "Culture", sant_t: "Santiago",
+  sant_p: "Santiago is the largest island of Cape Verde. It is home to the capital, Praia, and to Cidade Velha, the first European colonial town in the tropics and now a UNESCO World Heritage site. Santiago is also the birthplace of batuku and funaná, two musical traditions that carry the island's history.",
+  cult_words: "Words from the heart of Cape Verde",
+  prog_t: "Your progress", xp: "Total XP", acc: "Correct answers", streak: "Day streak", best: "Best score",
+  prof_t: "Profile", prof_local: "No account needed. Your progress is saved on this device only.",
+  set_lang: "Interface language", set_var: "Kriolu variant", reset: "Reset progress", reset_q: "This erases your progress on this device. Reset anyway?", reset_yes: "Yes, reset", cancel: "Cancel", reset_done: "Progress reset.",
+  privacy: "Privacy", privacy_p: "Mar Azul has no tracking or ads. Your language, progress and streak are stored in this browser and, if you sign in, in your private account that only you can read. Your email is used only to sign you in. Contributions are handled by Stripe on its own secure page, so Mar Azul never sees your card details.",
+  sup_sub: "Help us grow Mar Azul!",
+  sup_intro: "Mar Azul is a project created to pass on and celebrate the language and culture of Cape Verde. Your support helps us improve the lessons, create new content and make learning Kriolu accessible to more people.",
+  sup_choose: "Choose your contribution", a2: "A small gesture", a5: "A helping hand", a10: "A big support", afree: "Custom amount", afree_sub: "I choose",
+  amt_label: "Amount in euros", amt_err: "Enter an amount between 1 € and 1,000 €.", amt_chosen: "Your contribution: {a}", amt_none: "Choose an amount to continue.",
+  sup_cta: "Support Mar Azul", sup_free_note: "You'll enter this amount again on Stripe's secure page.", sup_redirect: "You'll go to Stripe's secure payment page. Mar Azul never sees your card details.",
+  sup_unavail: "Contributions aren't available yet. Thank you for your patience!", sup_reassure: "Every contribution is voluntary and appreciated. Thank you for being part of the adventure!",
+  why_t: "What does your support do?", w1: "Create new lessons", w1p: "Vocabulary, expressions and dialogues in Kriolu.", w2: "Celebrate our culture", w2p: "Pass on the linguistic and cultural heritage of Cape Verde.", w3: "Improve the app", w3p: "Build new features and make learning more enjoyable.",
+  comm_t: "Nos ku nos: together, we move forward", comm_p: "Whether you contribute, learn Kriolu or share the project, you're already helping it grow.", keep: "Keep learning",
+  legal: "Contributions are voluntary, with nothing given in return, and help fund the development of the project. They do not give rise to any tax advantage."
+},
+fr: {
+  auth_t: "Crée ton compte ou connecte-toi", auth_why: "Connecte-toi avec ton e-mail pour garder ta progression sur tous tes appareils.", email_label: "Ton e-mail", email_send: "Recevoir mon lien de connexion", email_how: "Pas de mot de passe : on t'envoie un lien, tu cliques et c'est bon. Nouveau ? Le même lien crée ton compte.", email_sent_t: "Regarde ta boîte mail", email_sent: "On t'a envoyé un lien de connexion. Ouvre-le sur cet appareil pour continuer.", email_again: "Utiliser un autre e-mail", email_bad: "Entre une adresse e-mail valide.", email_fail: "L'e-mail n'a pas pu partir. Réessaie dans un instant.", cover_login: "M'inscrire ou me connecter avec mon e-mail",
+  snd_on: "Activer le son", snd_off: "Couper le son", set_sound: "Sons",
+  cover_hi: "Content de te revoir !", logout: "Se déconnecter", login: "Me reconnecter à mon profil", logout_done: "Tu es déconnecté.", signed_out_p: "Tu es déconnecté. Ta progression reste enregistrée dans ton profil : reconnecte-toi pour la retrouver.", logout_p: "En te déconnectant, ta progression est retirée de cet appareil. Elle reste enregistrée dans ton profil.",
+  prof_cloud: "Ta progression est enregistrée dans ton profil et te suit sur tous les appareils où tu te connectes.",
+  tagline: "Apprends le kriolu. Vis notre culture.", start: "Commencer", cont: "Continuer", back: "Retour",
+  ob_hi: "Salut ! Moi, c'est {name}.", ob_hi_sub: "Je vais t'accompagner pour apprendre le kriolu.",
+  ob_lang: "Quelle langue parles-tu le mieux ?", ob_var: "Quel kriolu veux-tu apprendre ?",
+  ob_var_sub: "Chaque île a sa façon de parler. On commence par Santiago.", soon: "Bientôt",
+  nav_home: "Accueil", nav_lessons: "Leçons", nav_practice: "Pratique", nav_vocab: "Vocabulaire", nav_profile: "Profil",
+  home_sub: "Continue ton voyage en kriolu.", course: "Santiago · Sotavento", lessons_of: "{a}/{b} leçons",
+  today: "Leçon du jour", all_done: "Tu as terminé toutes les leçons ! Révise-les dans Pratique.", resume: "Continuer",
+  st_streak: "jours d'affilée", st_lessons: "leçons terminées", st_acc: "bonnes réponses",
+  culture_card: "Découvre Santiago", culture_card_sub: "Musique, histoire et mots de l'île.",
+  support_card: "Soutenir Mar Azul", support_card_sub: "Aide-nous à créer plus de leçons.", see_progress: "Voir ma progression",
+  away: "{name} t'attendait ! On reprend là où tu t'étais arrêté.",
+  lessons_t: "Leçons", lesson_n: "Leçon {n}", n_items: "{n} mots et phrases", locked: "Termine d'abord la leçon précédente", done: "Terminée",
+  tab_learn: "Apprendre", tab_practice: "Pratiquer", tab_culture: "Culture", start_practice: "Commencer l'exercice",
+  culture_none: "Pas encore de note culturelle dans cette leçon.", listen: "Écouter",
+  q_tr: "Que veut dire ceci ?", q_kr: "Comment dit-on ceci en kriolu ?", q_type: "Écris ceci en kriolu", q_order: "Remets les mots dans l'ordre", q_match: "Associe les paires",
+  type_ph: "Écris en kriolu…", accents: "Les accents sont facultatifs.", check: "Vérifier", correct: "Bravo !", wrong: "Pas tout à fait. La réponse est :", next: "Suivant", quit: "Quitter",
+  fin_t: "Leçon terminée !", fin_acc: "{n} % de bonnes réponses", fin_xp: "+{n} XP", back_lessons: "Retour aux leçons", again: "Refaire l'exercice",
+  prac_t: "Pratique", prac_sub: "Une révision mélangée des leçons que tu as terminées.", prac_empty: "Termine ta première leçon, puis reviens ici pour la réviser.", prac_start: "Commencer la révision",
+  vocab_t: "Vocabulaire", search: "Cherche un mot…", all: "Tout", none: "Aucun mot ne correspond à « {q} ».",
+  cult_t: "Culture", sant_t: "Santiago",
+  sant_p: "Santiago est la plus grande île du Cap-Vert. On y trouve la capitale, Praia, et Cidade Velha, la première ville coloniale européenne des tropiques, aujourd'hui inscrite au patrimoine mondial de l'UNESCO. Santiago est aussi le berceau du batuku et du funaná, deux traditions musicales qui portent l'histoire de l'île.",
+  cult_words: "Des mots du cœur du Cap-Vert",
+  prog_t: "Ta progression", xp: "XP au total", acc: "Bonnes réponses", streak: "Jours d'affilée", best: "Meilleur score",
+  prof_t: "Profil", prof_local: "Pas besoin de compte. Ta progression est enregistrée sur cet appareil uniquement.",
+  set_lang: "Langue de l'interface", set_var: "Variante du kriolu", reset: "Réinitialiser la progression", reset_q: "Ta progression sur cet appareil sera effacée. Réinitialiser quand même ?", reset_yes: "Oui, réinitialiser", cancel: "Annuler", reset_done: "Progression réinitialisée.",
+  privacy: "Confidentialité", privacy_p: "Mar Azul n'a ni pub ni suivi. Ta langue, ta progression et ta série sont enregistrées dans ce navigateur et, si tu te connectes, dans ton compte privé, que toi seul peux lire. Ton e-mail sert uniquement à te connecter. Les contributions passent par la page sécurisée de Stripe : Mar Azul ne voit jamais les données de ta carte.",
+  sup_sub: "Aide-nous à faire grandir Mar Azul !",
+  sup_intro: "Mar Azul est un projet créé pour transmettre et valoriser la langue et la culture capverdiennes. Ton soutien nous aide à améliorer les leçons, créer de nouveaux contenus et rendre l'apprentissage du kriolu accessible à davantage de personnes.",
+  sup_choose: "Choisis ta contribution", a2: "Un petit geste", a5: "Un coup de pouce", a10: "Un grand soutien", afree: "Montant libre", afree_sub: "Je choisis",
+  amt_label: "Montant en euros", amt_err: "Indique un montant entre 1 € et 1 000 €.", amt_chosen: "Ta contribution : {a}", amt_none: "Choisis un montant pour continuer.",
+  sup_cta: "Soutenir Mar Azul", sup_free_note: "Tu saisiras de nouveau ce montant sur la page sécurisée de Stripe.", sup_redirect: "Tu vas être redirigé vers la page de paiement sécurisée de Stripe. Mar Azul ne voit jamais les données de ta carte.",
+  sup_unavail: "Les contributions ne sont pas encore disponibles. Merci de ta patience !", sup_reassure: "Chaque contribution est volontaire et appréciée. Merci de faire partie de l'aventure !",
+  why_t: "À quoi sert ton soutien ?", w1: "Créer de nouvelles leçons", w1p: "Vocabulaire, expressions et dialogues en kriolu.", w2: "Valoriser notre culture", w2p: "Transmettre le patrimoine linguistique et culturel du Cap-Vert.", w3: "Améliorer l'application", w3p: "Développer de nouvelles fonctionnalités et rendre l'expérience plus agréable.",
+  comm_t: "Nos ku nos : ensemble, on avance", comm_p: "Que tu contribues financièrement, que tu apprennes le kriolu ou que tu partages le projet, tu participes déjà à son développement.", keep: "Continuer à apprendre",
+  legal: "Les contributions sont volontaires, sans contrepartie, et servent à financer le développement du projet. Elles n'ouvrent droit à aucun avantage fiscal."
+},
+pt: {
+  auth_t: "Cria a tua conta ou entra", auth_why: "Entra com o teu e-mail para guardar o teu progresso em todos os teus dispositivos.", email_label: "O teu e-mail", email_send: "Receber o meu link de acesso", email_how: "Sem palavra-passe: enviamos-te um link, tocas nele e pronto. És novo? O mesmo link cria a tua conta.", email_sent_t: "Vê a tua caixa de correio", email_sent: "Enviámos-te um link de acesso. Abre-o neste dispositivo para continuar.", email_again: "Usar outro e-mail", email_bad: "Escreve um endereço de e-mail válido.", email_fail: "Não foi possível enviar o e-mail. Tenta de novo daqui a pouco.", cover_login: "Inscrever-me ou entrar com o meu e-mail",
+  snd_on: "Ligar o som", snd_off: "Desligar o som", set_sound: "Sons",
+  cover_hi: "Que bom ver-te de novo!", logout: "Terminar sessão", login: "Voltar a entrar no meu perfil", logout_done: "Terminaste a sessão.", signed_out_p: "Terminaste a sessão. O teu progresso continua guardado no teu perfil: volta a entrar para o recuperar.", logout_p: "Ao terminar a sessão, o teu progresso é retirado deste dispositivo. Continua guardado no teu perfil.",
+  prof_cloud: "O teu progresso fica guardado no teu perfil e acompanha-te em todos os dispositivos onde entrares.",
+  tagline: "Aprende Kriolu. Vive a nossa cultura.", start: "Começar", cont: "Continuar", back: "Voltar",
+  ob_hi: "Olá! Eu sou o {name}.", ob_hi_sub: "Vou acompanhar-te na aprendizagem do Kriolu.",
+  ob_lang: "Que língua falas melhor?", ob_var: "Que Kriolu queres aprender?",
+  ob_var_sub: "Cada ilha tem a sua maneira de falar. Começamos por Santiago.", soon: "Em breve",
+  nav_home: "Início", nav_lessons: "Lições", nav_practice: "Prática", nav_vocab: "Vocabulário", nav_profile: "Perfil",
+  home_sub: "Continua a tua viagem no Kriolu.", course: "Santiago · Sotavento", lessons_of: "{a}/{b} lições",
+  today: "Lição de hoje", all_done: "Terminaste todas as lições! Revê-as na Prática.", resume: "Continuar",
+  st_streak: "dias seguidos", st_lessons: "lições concluídas", st_acc: "respostas certas",
+  culture_card: "Descobre Santiago", culture_card_sub: "Música, história e palavras da ilha.",
+  support_card: "Apoiar o Mar Azul", support_card_sub: "Ajuda-nos a criar mais lições.", see_progress: "Ver o meu progresso",
+  away: "O {name} tinha saudades tuas! Vamos continuar de onde paraste.",
+  lessons_t: "Lições", lesson_n: "Lição {n}", n_items: "{n} palavras e frases", locked: "Termina primeiro a lição anterior", done: "Concluída",
+  tab_learn: "Aprender", tab_practice: "Praticar", tab_culture: "Cultura", start_practice: "Começar o exercício",
+  culture_none: "Ainda não há notas culturais nesta lição.", listen: "Ouvir",
+  q_tr: "O que significa isto?", q_kr: "Como se diz isto em Kriolu?", q_type: "Escreve isto em Kriolu", q_order: "Põe as palavras por ordem", q_match: "Liga os pares",
+  type_ph: "Escreve em Kriolu…", accents: "Os acentos são opcionais.", check: "Verificar", correct: "Certo!", wrong: "Quase. A resposta é:", next: "Seguinte", quit: "Sair",
+  fin_t: "Lição concluída!", fin_acc: "{n}% de respostas certas", fin_xp: "+{n} XP", back_lessons: "Voltar às lições", again: "Praticar outra vez",
+  prac_t: "Prática", prac_sub: "Uma revisão mista das lições que terminaste.", prac_empty: "Termina a tua primeira lição e volta aqui para a rever.", prac_start: "Começar a revisão",
+  vocab_t: "Vocabulário", search: "Procura uma palavra…", all: "Tudo", none: "Nenhuma palavra corresponde a “{q}”.",
+  cult_t: "Cultura", sant_t: "Santiago",
+  sant_p: "Santiago é a maior ilha de Cabo Verde. Lá ficam a capital, a Praia, e a Cidade Velha, a primeira cidade colonial europeia nos trópicos, hoje Património Mundial da UNESCO. Santiago é também o berço do batuku e do funaná, duas tradições musicais que guardam a história da ilha.",
+  cult_words: "Palavras do coração de Cabo Verde",
+  prog_t: "O teu progresso", xp: "XP total", acc: "Respostas certas", streak: "Dias seguidos", best: "Melhor resultado",
+  prof_t: "Perfil", prof_local: "Não precisas de conta. O teu progresso fica guardado apenas neste dispositivo.",
+  set_lang: "Língua da interface", set_var: "Variante do Kriolu", reset: "Repor o progresso", reset_q: "O teu progresso neste dispositivo será apagado. Repor mesmo assim?", reset_yes: "Sim, repor", cancel: "Cancelar", reset_done: "Progresso reposto.",
+  privacy: "Privacidade", privacy_p: "O Mar Azul não tem publicidade nem rastreamento. A tua língua, o teu progresso e a tua série ficam guardados neste navegador e, se entrares, na tua conta privada, que só tu podes ler. O teu e-mail serve apenas para entrares. As contribuições passam pela página segura da Stripe, por isso o Mar Azul nunca vê os dados do teu cartão.",
+  sup_sub: "Ajuda-nos a fazer crescer o Mar Azul!",
+  sup_intro: "O Mar Azul é um projeto criado para transmitir e valorizar a língua e a cultura cabo-verdianas. O teu apoio ajuda-nos a melhorar as lições, criar novos conteúdos e tornar a aprendizagem do Kriolu acessível a mais pessoas.",
+  sup_choose: "Escolhe a tua contribuição", a2: "Um pequeno gesto", a5: "Uma ajuda", a10: "Um grande apoio", afree: "Montante livre", afree_sub: "Eu escolho",
+  amt_label: "Montante em euros", amt_err: "Indica um montante entre 1 € e 1000 €.", amt_chosen: "A tua contribuição: {a}", amt_none: "Escolhe um montante para continuar.",
+  sup_cta: "Apoiar o Mar Azul", sup_free_note: "Vais indicar este montante outra vez na página segura da Stripe.", sup_redirect: "Vais para a página de pagamento segura da Stripe. O Mar Azul nunca vê os dados do teu cartão.",
+  sup_unavail: "As contribuições ainda não estão disponíveis. Obrigado pela paciência!", sup_reassure: "Cada contribuição é voluntária e muito apreciada. Obrigado por fazeres parte desta aventura!",
+  why_t: "Para que serve o teu apoio?", w1: "Criar novas lições", w1p: "Vocabulário, expressões e diálogos em Kriolu.", w2: "Valorizar a nossa cultura", w2p: "Transmitir o património linguístico e cultural de Cabo Verde.", w3: "Melhorar a aplicação", w3p: "Desenvolver novas funcionalidades e tornar a experiência mais agradável.",
+  comm_t: "Nos ku nos: juntos, avançamos", comm_p: "Quer contribuas, quer aprendas Kriolu ou partilhes o projeto, já estás a ajudá-lo a crescer.", keep: "Continuar a aprender",
+  legal: "As contribuições são voluntárias, sem contrapartida, e servem para financiar o desenvolvimento do projeto. Não dão direito a qualquer benefício fiscal."
+},
+nl: {
+  auth_t: "Maak je account of log in", auth_why: "Log in met je e-mail om je voortgang op al je apparaten te bewaren.", email_label: "Je e-mailadres", email_send: "Stuur me een inloglink", email_how: "Geen wachtwoord: we sturen je een link, je tikt erop en je bent binnen. Nieuw? Dezelfde link maakt je account.", email_sent_t: "Kijk in je inbox", email_sent: "We hebben je een inloglink gestuurd. Open hem op dit apparaat om verder te gaan.", email_again: "Ander e-mailadres gebruiken", email_bad: "Vul een geldig e-mailadres in.", email_fail: "De e-mail kon niet worden verstuurd. Probeer het zo nog eens.", cover_login: "Aanmelden of inloggen met mijn e-mail",
+  snd_on: "Geluid aan", snd_off: "Geluid uit", set_sound: "Geluiden",
+  cover_hi: "Fijn dat je er weer bent!", logout: "Uitloggen", login: "Opnieuw inloggen op mijn profiel", logout_done: "Je bent uitgelogd.", signed_out_p: "Je bent uitgelogd. Je voortgang blijft bewaard in je profiel: log opnieuw in om hem terug te krijgen.", logout_p: "Bij uitloggen wordt je voortgang van dit apparaat verwijderd. Hij blijft bewaard in je profiel.",
+  prof_cloud: "Je voortgang wordt in je profiel bewaard en volgt je op elk apparaat waarop je inlogt.",
+  tagline: "Leer Kriolu. Beleef onze cultuur.", start: "Beginnen", cont: "Doorgaan", back: "Terug",
+  ob_hi: "Hoi! Ik ben {name}.", ob_hi_sub: "Ik help je Kriolu te leren.",
+  ob_lang: "Welke taal spreek je het best?", ob_var: "Welk Kriolu wil je leren?",
+  ob_var_sub: "Elk eiland heeft zijn eigen manier van spreken. We beginnen met Santiago.", soon: "Binnenkort",
+  nav_home: "Start", nav_lessons: "Lessen", nav_practice: "Oefenen", nav_vocab: "Woorden", nav_profile: "Profiel",
+  home_sub: "Ga verder met je Kriolu-reis.", course: "Santiago · Sotavento", lessons_of: "{a}/{b} lessen",
+  today: "Les van vandaag", all_done: "Je hebt alle lessen afgerond! Herhaal ze bij Oefenen.", resume: "Doorgaan",
+  st_streak: "dagen op rij", st_lessons: "lessen klaar", st_acc: "goede antwoorden",
+  culture_card: "Ontdek Santiago", culture_card_sub: "Muziek, geschiedenis en woorden van het eiland.",
+  support_card: "Steun Mar Azul", support_card_sub: "Help ons meer lessen te maken.", see_progress: "Bekijk mijn voortgang",
+  away: "{name} heeft je gemist! We gaan verder waar je gebleven was.",
+  lessons_t: "Lessen", lesson_n: "Les {n}", n_items: "{n} woorden en zinnen", locked: "Rond eerst de vorige les af", done: "Klaar",
+  tab_learn: "Leren", tab_practice: "Oefenen", tab_culture: "Cultuur", start_practice: "Begin met oefenen",
+  culture_none: "Nog geen cultuurnotities in deze les.", listen: "Luisteren",
+  q_tr: "Wat betekent dit?", q_kr: "Hoe zeg je dit in het Kriolu?", q_type: "Schrijf dit in het Kriolu", q_order: "Zet de woorden in de juiste volgorde", q_match: "Koppel de paren",
+  type_ph: "Typ in het Kriolu…", accents: "Accenten zijn niet verplicht.", check: "Controleren", correct: "Goed zo!", wrong: "Bijna. Het antwoord is:", next: "Volgende", quit: "Stoppen",
+  fin_t: "Les afgerond!", fin_acc: "{n}% goed", fin_xp: "+{n} XP", back_lessons: "Terug naar de lessen", again: "Opnieuw oefenen",
+  prac_t: "Oefenen", prac_sub: "Een gemengde herhaling van de lessen die je hebt afgerond.", prac_empty: "Rond je eerste les af en kom hier terug om te herhalen.", prac_start: "Begin herhaling",
+  vocab_t: "Woorden", search: "Zoek een woord…", all: "Alles", none: "Geen woorden gevonden voor “{q}”.",
+  cult_t: "Cultuur", sant_t: "Santiago",
+  sant_p: "Santiago is het grootste eiland van Kaapverdië. Hier liggen de hoofdstad Praia en Cidade Velha, de eerste Europese koloniale stad in de tropen en nu UNESCO-werelderfgoed. Santiago is ook de bakermat van batuku en funaná, twee muziektradities die de geschiedenis van het eiland dragen.",
+  cult_words: "Woorden uit het hart van Kaapverdië",
+  prog_t: "Je voortgang", xp: "Totaal XP", acc: "Goede antwoorden", streak: "Dagen op rij", best: "Beste score",
+  prof_t: "Profiel", prof_local: "Geen account nodig. Je voortgang wordt alleen op dit apparaat bewaard.",
+  set_lang: "Taal van de app", set_var: "Kriolu-variant", reset: "Voortgang wissen", reset_q: "Je voortgang op dit apparaat wordt gewist. Toch wissen?", reset_yes: "Ja, wissen", cancel: "Annuleren", reset_done: "Voortgang gewist.",
+  privacy: "Privacy", privacy_p: "Mar Azul heeft geen advertenties en volgt je niet. Je taal, voortgang en reeks worden in deze browser bewaard en, als je inlogt, in je privéaccount dat alleen jij kunt lezen. Je e-mail wordt alleen gebruikt om in te loggen. Bijdragen lopen via de beveiligde pagina van Stripe, dus Mar Azul ziet nooit je kaartgegevens.",
+  sup_sub: "Help ons Mar Azul te laten groeien!",
+  sup_intro: "Mar Azul is een project om de Kaapverdische taal en cultuur door te geven en te waarderen. Met je steun kunnen we de lessen verbeteren, nieuwe inhoud maken en Kriolu leren voor meer mensen toegankelijk maken.",
+  sup_choose: "Kies je bijdrage", a2: "Een klein gebaar", a5: "Een duwtje in de rug", a10: "Een grote steun", afree: "Eigen bedrag", afree_sub: "Ik kies zelf",
+  amt_label: "Bedrag in euro", amt_err: "Vul een bedrag in tussen 1 € en 1000 €.", amt_chosen: "Je bijdrage: {a}", amt_none: "Kies een bedrag om verder te gaan.",
+  sup_cta: "Steun Mar Azul", sup_free_note: "Je vult dit bedrag opnieuw in op de beveiligde pagina van Stripe.", sup_redirect: "Je gaat naar de beveiligde betaalpagina van Stripe. Mar Azul ziet nooit je kaartgegevens.",
+  sup_unavail: "Bijdragen zijn nog niet mogelijk. Bedankt voor je geduld!", sup_reassure: "Elke bijdrage is vrijwillig en wordt gewaardeerd. Bedankt dat je deel uitmaakt van het avontuur!",
+  why_t: "Waar gaat je steun naartoe?", w1: "Nieuwe lessen maken", w1p: "Woordenschat, uitdrukkingen en dialogen in het Kriolu.", w2: "Onze cultuur waarderen", w2p: "Het taal- en cultuurerfgoed van Kaapverdië doorgeven.", w3: "De app verbeteren", w3p: "Nieuwe functies bouwen en het leren prettiger maken.",
+  comm_t: "Nos ku nos: samen komen we verder", comm_p: "Of je nu bijdraagt, Kriolu leert of het project deelt, je helpt het al groeien.", keep: "Verder leren",
+  legal: "Bijdragen zijn vrijwillig, zonder tegenprestatie, en helpen de ontwikkeling van het project te financieren. Ze geven geen recht op belastingvoordeel."
+},
+es: {
+  auth_t: "Crea tu cuenta o inicia sesión", auth_why: "Inicia sesión con tu e-mail para guardar tu progreso en todos tus dispositivos.", email_label: "Tu e-mail", email_send: "Recibir mi enlace de acceso", email_how: "Sin contraseña: te enviamos un enlace, lo tocas y listo. ¿Eres nuevo? El mismo enlace crea tu cuenta.", email_sent_t: "Mira tu bandeja de entrada", email_sent: "Te enviamos un enlace de acceso. Ábrelo en este dispositivo para continuar.", email_again: "Usar otro e-mail", email_bad: "Escribe una dirección de e-mail válida.", email_fail: "No se pudo enviar el e-mail. Inténtalo de nuevo en un momento.", cover_login: "Registrarme o entrar con mi e-mail",
+  snd_on: "Activar el sonido", snd_off: "Quitar el sonido", set_sound: "Sonidos",
+  cover_hi: "¡Qué bien verte de nuevo!", logout: "Cerrar sesión", login: "Volver a entrar en mi perfil", logout_done: "Has cerrado sesión.", signed_out_p: "Has cerrado sesión. Tu progreso sigue guardado en tu perfil: vuelve a entrar para recuperarlo.", logout_p: "Al cerrar sesión, tu progreso se quita de este dispositivo. Sigue guardado en tu perfil.",
+  prof_cloud: "Tu progreso se guarda en tu perfil y te acompaña en todos los dispositivos donde inicies sesión.",
+  tagline: "Aprende kriolu. Vive nuestra cultura.", start: "Empezar", cont: "Continuar", back: "Volver",
+  ob_hi: "¡Hola! Soy {name}.", ob_hi_sub: "Voy a acompañarte para aprender kriolu.",
+  ob_lang: "¿Qué idioma hablas mejor?", ob_var: "¿Qué kriolu quieres aprender?",
+  ob_var_sub: "Cada isla tiene su manera de hablar. Empezamos por Santiago.", soon: "Pronto",
+  nav_home: "Inicio", nav_lessons: "Lecciones", nav_practice: "Práctica", nav_vocab: "Vocabulario", nav_profile: "Perfil",
+  home_sub: "Sigue tu viaje en kriolu.", course: "Santiago · Sotavento", lessons_of: "{a}/{b} lecciones",
+  today: "Lección de hoy", all_done: "¡Terminaste todas las lecciones! Repásalas en Práctica.", resume: "Continuar",
+  st_streak: "días seguidos", st_lessons: "lecciones hechas", st_acc: "respuestas correctas",
+  culture_card: "Descubre Santiago", culture_card_sub: "Música, historia y palabras de la isla.",
+  support_card: "Apoyar Mar Azul", support_card_sub: "Ayúdanos a crear más lecciones.", see_progress: "Ver mi progreso",
+  away: "¡{name} te echaba de menos! Sigamos donde lo dejaste.",
+  lessons_t: "Lecciones", lesson_n: "Lección {n}", n_items: "{n} palabras y frases", locked: "Termina primero la lección anterior", done: "Hecha",
+  tab_learn: "Aprender", tab_practice: "Practicar", tab_culture: "Cultura", start_practice: "Empezar el ejercicio",
+  culture_none: "Todavía no hay notas culturales en esta lección.", listen: "Escuchar",
+  q_tr: "¿Qué significa esto?", q_kr: "¿Cómo se dice esto en kriolu?", q_type: "Escribe esto en kriolu", q_order: "Ordena las palabras", q_match: "Une las parejas",
+  type_ph: "Escribe en kriolu…", accents: "Las tildes son opcionales.", check: "Comprobar", correct: "¡Correcto!", wrong: "Casi. La respuesta es:", next: "Siguiente", quit: "Salir",
+  fin_t: "¡Lección terminada!", fin_acc: "{n} % de aciertos", fin_xp: "+{n} XP", back_lessons: "Volver a las lecciones", again: "Practicar otra vez",
+  prac_t: "Práctica", prac_sub: "Un repaso mezclado de las lecciones que terminaste.", prac_empty: "Termina tu primera lección y vuelve aquí para repasarla.", prac_start: "Empezar el repaso",
+  vocab_t: "Vocabulario", search: "Busca una palabra…", all: "Todo", none: "Ninguna palabra coincide con “{q}”.",
+  cult_t: "Cultura", sant_t: "Santiago",
+  sant_p: "Santiago es la isla más grande de Cabo Verde. Allí están la capital, Praia, y Cidade Velha, la primera ciudad colonial europea en los trópicos, hoy Patrimonio Mundial de la UNESCO. Santiago es también la cuna del batuku y del funaná, dos tradiciones musicales que llevan la historia de la isla.",
+  cult_words: "Palabras del corazón de Cabo Verde",
+  prog_t: "Tu progreso", xp: "XP total", acc: "Respuestas correctas", streak: "Días seguidos", best: "Mejor resultado",
+  prof_t: "Perfil", prof_local: "No necesitas cuenta. Tu progreso se guarda solo en este dispositivo.",
+  set_lang: "Idioma de la interfaz", set_var: "Variante del kriolu", reset: "Reiniciar el progreso", reset_q: "Se borrará tu progreso en este dispositivo. ¿Reiniciar de todos modos?", reset_yes: "Sí, reiniciar", cancel: "Cancelar", reset_done: "Progreso reiniciado.",
+  privacy: "Privacidad", privacy_p: "Mar Azul no tiene publicidad ni seguimiento. Tu idioma, tu progreso y tu racha se guardan en este navegador y, si inicias sesión, en tu cuenta privada, que solo tú puedes leer. Tu e-mail solo sirve para iniciar sesión. Las contribuciones pasan por la página segura de Stripe, así que Mar Azul nunca ve los datos de tu tarjeta.",
+  sup_sub: "¡Ayúdanos a hacer crecer Mar Azul!",
+  sup_intro: "Mar Azul es un proyecto creado para transmitir y valorar la lengua y la cultura caboverdianas. Tu apoyo nos ayuda a mejorar las lecciones, crear nuevos contenidos y hacer que aprender kriolu sea accesible para más personas.",
+  sup_choose: "Elige tu contribución", a2: "Un pequeño gesto", a5: "Un empujón", a10: "Un gran apoyo", afree: "Importe libre", afree_sub: "Yo elijo",
+  amt_label: "Importe en euros", amt_err: "Indica un importe entre 1 € y 1000 €.", amt_chosen: "Tu contribución: {a}", amt_none: "Elige un importe para continuar.",
+  sup_cta: "Apoyar Mar Azul", sup_free_note: "Volverás a indicar este importe en la página segura de Stripe.", sup_redirect: "Irás a la página de pago segura de Stripe. Mar Azul nunca ve los datos de tu tarjeta.",
+  sup_unavail: "Las contribuciones aún no están disponibles. ¡Gracias por tu paciencia!", sup_reassure: "Cada contribución es voluntaria y muy apreciada. ¡Gracias por formar parte de la aventura!",
+  why_t: "¿Para qué sirve tu apoyo?", w1: "Crear nuevas lecciones", w1p: "Vocabulario, expresiones y diálogos en kriolu.", w2: "Valorar nuestra cultura", w2p: "Transmitir el patrimonio lingüístico y cultural de Cabo Verde.", w3: "Mejorar la aplicación", w3p: "Crear nuevas funciones y hacer la experiencia más agradable.",
+  comm_t: "Nos ku nos: juntos avanzamos", comm_p: "Ya sea que contribuyas, aprendas kriolu o compartas el proyecto, ya estás ayudando a que crezca.", keep: "Seguir aprendiendo",
+  legal: "Las contribuciones son voluntarias, sin contrapartida, y ayudan a financiar el desarrollo del proyecto. No dan derecho a ninguna ventaja fiscal."
+}};
+const LESSON_TITLES = {
+  en: ["Greetings","Introducing yourself","Family","Numbers","Food","Home","Days and time","At the market","Feelings","Everyday expressions"],
+  fr: ["Salutations","Se présenter","La famille","Les chiffres","La nourriture","La maison","Les jours et l'heure","Au marché","Les sentiments","Expressions courantes"],
+  pt: ["Cumprimentos","Apresentar-se","A família","Os números","A comida","A casa","Os dias e as horas","No mercado","Os sentimentos","Expressões do dia a dia"],
+  nl: ["Begroetingen","Jezelf voorstellen","Familie","Getallen","Eten","Thuis","Dagen en tijd","Op de markt","Gevoelens","Alledaagse uitdrukkingen"],
+  es: ["Saludos","Presentarse","La familia","Los números","La comida","La casa","Los días y la hora","En el mercado","Los sentimientos","Expresiones cotidianas"]
+};
+const ISLANDS = { sotavento: ["Santiago","Brava","Fogo","Maio"], barlavento: ["São Vicente","Santo Antão","São Nicolau","Sal","Boa Vista"] };
+
+// ---- Storage (per device) ----
+const KEY = "marazul.v1";
+function defaults() { return { lang: null, variant: VARIANT, onboarded: false, xp: 0, streak: 0, lastDay: null, done: {}, right: 0, total: 0 }; }
+let S = (() => { try { return Object.assign(defaults(), JSON.parse(localStorage.getItem(KEY) || "{}")); } catch (e) { return defaults(); } })();
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} cloudSave(); }
+
+// ---- Profile: progress kept in the viewer's own private profile when signed in to claude.ai ----
+let CLOUD = null, ME = { name: "" }, cloudTimer = 0, CAN_CLOUD = false;
+const OUT_KEY = "marazul.signedout";
+const signedOut = () => { try { return localStorage.getItem(OUT_KEY) === "1"; } catch (e) { return false; } };
+function cloudPayload() { const { lang, variant, onboarded, xp, streak, lastDay, done, right, total } = S; return { lang, variant, onboarded, xp, streak, lastDay, done, right, total, updated: Date.now() }; }
+function cloudSave() {
+  if (!CLOUD) return;
+  clearTimeout(cloudTimer);
+  cloudTimer = setTimeout(() => { CLOUD.set(cloudPayload()).catch(() => {}); }, 800);
+}
+// Email sign-in (magic link) when the app runs outside claude.ai
+let SUPA = null, authSent = false, authErr = "";
+function supa() {
+  if (SUPA || !SUPABASE_ANON_KEY || !window.supabase) return SUPA;
+  SUPA = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return SUPA;
+}
+async function connectSupabase() {
+  const sb = supa(); if (!sb) return;
+  CAN_CLOUD = true;
+  const { data } = await sb.auth.getSession();
+  const u = data && data.session && data.session.user;
+  if (!u) return render();
+  try { localStorage.removeItem(OUT_KEY); } catch (e) {}
+  ME = { name: u.email || "" };
+  CLOUD = {
+    async get() { const { data: row } = await sb.from("progress").select("data").eq("user_id", u.id).maybeSingle(); return { exists: !!row, data: () => row && row.data }; },
+    async set(d) { const { error } = await sb.from("progress").upsert({ user_id: u.id, data: d, updated_at: new Date().toISOString() }); if (error) throw error; },
+    async out() { await sb.auth.signOut(); },
+  };
+  const snap = await CLOUD.get();
+  const remote = snap.exists ? snap.data() : null;
+  if (remote && (remote.xp || 0) >= (S.xp || 0)) { S = Object.assign(defaults(), remote); if (S.lang) L = S.lang; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+  else if (S.onboarded) cloudSave();
+  if (R.v === "cover" && S.onboarded) R = { v: "home" };
+  render();
+}
+async function sendMagicLink(email) {
+  const sb = supa(); if (!sb) return;
+  authErr = ""; authSent = false;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { authErr = t("email_bad"); return render(); }
+  const { error } = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: location.origin + location.pathname } });
+  if (error) authErr = t("email_fail"); else authSent = true;
+  render();
+}
+async function connectProfile() {
+  if (!window.claude || !window.claude.use) return connectSupabase().catch(() => { CLOUD = null; });
+  try {
+    const [user, db] = await Promise.all([window.claude.use("user"), window.claude.use("db")]);
+    if (!user || !db) return;
+    CAN_CLOUD = true;
+    if (signedOut()) return render();
+    const id = await user.id(); if (!id) return;
+    ME = await user.me();
+    CLOUD = db.doc("data/users/" + id + "/progress");
+    const snap = await CLOUD.get();
+    const remote = snap.exists ? snap.data() : null;
+    if (remote && (remote.xp || 0) >= (S.xp || 0)) { S = Object.assign(defaults(), remote); if (S.lang) L = S.lang; try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+    else if (S.onboarded) cloudSave();
+    render();
+  } catch (e) { CLOUD = null; }
+}
+connectProfile();
+// Sign out: push the latest progress to the profile, then clear this device
+async function signOut() {
+  clearTimeout(cloudTimer);
+  if (CLOUD) { try { await CLOUD.set(cloudPayload()); } catch (e) {} try { if (CLOUD.out) await CLOUD.out(); } catch (e) {} }
+  CLOUD = null; ME = { name: "" };
+  try { localStorage.setItem(OUT_KEY, "1"); } catch (e) {}
+  const lang = S.lang; S = defaults(); S.lang = lang; S.onboarded = true;
+  try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
+  go("cover"); toast(t("logout_done"));
+}
+function signIn() { try { localStorage.removeItem(OUT_KEY); } catch (e) {} connectProfile(); }
+function browserLang() { const l = (navigator.language || "en").slice(0, 2).toLowerCase(); return LANGS[l] ? l : "en"; }
+let L = S.lang || browserLang();
+
+// ---- Helpers ----
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function t(k, v = {}) { let s = (T[L] && T[L][k]) || T.en[k] || k; for (const [a, b] of Object.entries(v)) s = s.split("{" + a + "}").join(b); return s; }
+const LESSONS = CONTENT.lecons;
+const kr = e => e.formes[VARIANT].texte;
+const tr = e => e.traductions[L];
+const titleOf = i => LESSON_TITLES[L][i];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const norm = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[?!.,;:¡¿"'’«»()-]/g, " ").replace(/\s+/g, " ").trim();
+function acceptedAnswers(e) {
+  const f = e.formes[VARIANT], out = new Set([f.texte, ...(f.variantes_acceptees || [])]);
+  f.texte.split("/").forEach(p => out.add(p));
+  return [...out].map(norm).filter(Boolean);
+}
+const today = () => new Date().toISOString().slice(0, 10);
+const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
+const doneCount = () => LESSONS.filter(l => S.done[l.id]).length;
+const nextLessonIdx = () => { const i = LESSONS.findIndex(l => !S.done[l.id]); return i; };
+const unlocked = i => i === 0 || !!S.done[LESSONS[i - 1].id];
+const accuracy = () => S.total ? Math.round(100 * S.right / S.total) : 0;
+const streakNow = () => (S.lastDay && daysBetween(S.lastDay, today()) <= 1) ? S.streak : 0;
+function greeting() { const h = new Date().getHours(); const id = h < 12 ? "L01-01" : h < 19 ? "L01-02" : "L01-03"; return kr(LESSONS[0].entrees.find(e => e.id === id)); }
+function toast(msg) { const el = $("#toast"); el.textContent = msg; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => el.hidden = true, 2200); }
+
+const ICONS = {
+  home: '<path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/>',
+  lessons: '<path d="M4 5h7a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H4z"/><path d="M20 5h-4a3 3 0 0 0-2 1"/><path d="M20 5v13h-6"/>',
+  practice: '<path d="M4 6h16v10H8l-4 4z"/><path d="M9 11h6"/>',
+  vocab: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>',
+  profile: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  check: '<path d="m5 12 5 5 9-10"/>',
+  book: '<path d="M4 4h10a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4z"/><path d="M8 8h6M8 12h6"/>',
+  heart: '<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+  spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>'
+};
+const ic = (n, s = 22) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+const SCENE = `<svg class="scene" viewBox="0 0 200 130" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
+  <circle cx="160" cy="30" r="14" fill="#F9B825"/>
+  <path d="M30 76 L78 30 L100 48 L122 22 L176 76 Z" fill="#7A5A3C"/><path d="M78 30 L92 44 L100 48 L86 46 Z" fill="#9A7652"/>
+  <path d="M40 76 Q60 66 90 70 T150 70 T190 76 Z" fill="#5E9E50"/>
+  <rect x="96" y="62" width="10" height="8" fill="#F4E3C3"/><rect x="110" y="60" width="12" height="10" fill="#F6C9A0"/><rect x="126" y="63" width="9" height="7" fill="#FFFFFF"/>
+  <path d="M0 84 Q25 78 50 84 T100 84 T150 84 T200 84" stroke="#FFFFFF" stroke-width="3" fill="none" opacity=".75"/>
+  <path d="M0 100 Q25 94 50 100 T100 100 T150 100 T200 100" stroke="#FFFFFF" stroke-width="3" fill="none" opacity=".5"/>
+</svg>`;
+
+// ---- Router (state inside the page; bare #tokens for main views) ----
+let R = { v: "cover" };
+const NAV = ["home", "lessons", "practice", "vocab", "profile"];
+function go(v, extra = {}) { if (v !== "cover") seaStop(); if (v === "finish") sfx("finish"); R = Object.assign({ v }, extra); render(); window.scrollTo(0, 0); }
+
+function render() {
+  document.documentElement.lang = L;
+  const app = $("#app");
+  let html;
+  if (R.v === "cover" && !(S.onboarded === false && obStep > 0)) html = coverView();
+  else if (!S.onboarded) html = onboarding();
+  else switch (R.v) {
+    case "lessons": html = lessonsView(); break;
+    case "lesson": html = lessonView(); break;
+    case "ex": html = exView(); break;
+    case "finish": html = finishView(); break;
+    case "practice": html = practiceView(); break;
+    case "vocab": html = vocabView(); break;
+    case "culture": html = cultureView(); break;
+    case "progress": html = progressView(); break;
+    case "profile": html = profileView(); break;
+    case "soutenir": html = supportView(); break;
+    default: html = homeView();
+  }
+  const showNav = S.onboarded && !["ex", "finish", "cover"].includes(R.v);
+  app.innerHTML = html + (showNav ? navBar() : "");
+  bind();
+}
+function navBar() {
+  const cur = R.v === "lesson" ? "lessons" : ["culture", "progress", "soutenir"].includes(R.v) ? (R.v === "soutenir" || R.v === "progress" ? "profile" : "home") : R.v;
+  return `<nav class="nav" aria-label="Main"><div class="inner">${NAV.map(n => `<button data-go="${n}" ${cur === n ? 'aria-current="page"' : ""}><svg viewBox="0 0 24 24">${ICONS[n]}</svg>${t("nav_" + n)}</button>`).join("")}</div></nav>`;
+}
+const header = (title, backTo) => `<div class="row">${backTo ? `<button class="iconbtn" data-go="${backTo}" aria-label="${t("back")}">${ic("back", 26)}</button>` : ""}<h1 class="grow">${title}</h1></div>`;
+
+
+// ---- Cover page: the sea moves gently, sharks swim and jump out of the water ----
+function coverView() {
+  const cta = S.onboarded
+    ? `<button class="btn sun" data-go="home">${t("cont")} ${ic("arrow")}</button>`
+    : `<button class="btn sun" data-ob="1">${t("start")} ${ic("arrow")}</button>`;
+  const wave = (cls, fill, d) => `<svg class="wave ${cls}" viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true"><path fill="${fill}" d="${d}"/></svg>`;
+  const W1 = "M0 60 Q90 30 180 60 T360 60 T540 60 T720 60 T900 60 T1080 60 T1260 60 T1440 60 V120 H0Z";
+  const W2 = "M0 50 Q120 80 240 50 T480 50 T720 50 T960 50 T1200 50 T1440 50 V120 H0Z";
+  const fin = `<svg viewBox="0 0 40 30" aria-hidden="true"><path d="M4 30 C10 18 18 6 30 2 C28 12 30 22 36 30Z" fill="#174F96"/></svg>`;
+  return `<div class="cover">
+    <div class="cover-sound">${soundBtn()}</div>
+    <div class="sky"><span class="sunball"></span><span class="cloud c1"></span><span class="cloud c2"></span></div>
+    <div class="cover-title"><h1>Mar Azul</h1><p>${S.onboarded && !signedOut() ? t("cover_hi") : t("tagline")}</p></div>
+    <div class="sea">
+      ${wave("w-back", "#2F8FE0", W1)}
+      <div class="fin f1">${fin}</div><div class="fin f2">${fin}</div>
+      <div class="jumper j1">${img("animadu", 96, MASCOT_NAME)}</div>
+      <div class="jumper j2">${djodje("happy", 64, "")}</div>
+      <span class="splashring r1"></span><span class="splashring r2"></span>
+      ${wave("w-mid", "#1E6FC0", W2)}
+      ${wave("w-front", "#0B3D7A", W1)}
+    </div>
+    <div class="cover-cta">${cta}${SUPA && !CLOUD ? `<button class="cover-login" data-cover-login>${t("cover_login")}</button>` : ""}</div>
+  </div>`;
+}
+
+// ---- Onboarding ----
+let obStep = 0;
+function onboarding() {
+  if (obStep === 0) return coverView();
+  if (obStep === 1) return `<div class="screen no-nav">
+    <div class="mascot-row">${img("simpatiku", 96, MASCOT_NAME)}<div class="bubble grow">${t("ob_hi", { name: MASCOT_NAME })}<div class="small muted">${t("ob_hi_sub")}</div></div></div>
+    <h2>${t("ob_lang")}</h2>
+    <div class="stack">${Object.entries(LANGS).map(([k, n]) => `<button class="choice" data-lang="${k}" aria-pressed="${k === L}">${n}${k === L ? `<span style="margin-left:auto;color:var(--ocean)">${ic("check")}</span>` : ""}</button>`).join("")}</div>
+    <div class="footer-bar"><button class="btn" data-ob="2">${t("cont")}</button></div></div>`;
+  return `<div class="screen no-nav">
+    <div class="row"><button class="iconbtn" data-ob="1" aria-label="${t("back")}">${ic("back", 26)}</button></div>
+    <div class="mascot-row">${img("kuriousu", 96, MASCOT_NAME)}<div class="bubble grow">${t("ob_var")}<div class="small muted">${t("ob_var_sub")}</div></div></div>
+    ${groupBlock("Sotavento", ISLANDS.sotavento)}${groupBlock("Barlavento", ISLANDS.barlavento)}
+    <div class="footer-bar"><button class="btn" data-finish-ob>${t("cont")}</button></div></div>`;
+}
+function groupBlock(name, isl) {
+  return `<div class="stack"><div class="eyebrow">${name} (${isl.join(", ")})</div>${isl.map(i => i === "Santiago"
+    ? `<button class="choice sel" aria-pressed="true">${i}<span class="tag" style="background:var(--ok-bg);color:var(--ok)">${ic("check", 16)}</span></button>`
+    : `<button class="choice" disabled style="opacity:.6">${i}<span class="tag">${t("soon")}</span></button>`).join("")}</div>`;
+}
+
+// ---- Home ----
+function homeView() {
+  const n = doneCount(), ni = nextLessonIdx(), away = S.lastDay && daysBetween(S.lastDay, today()) > 3;
+  const lessonCard = ni === -1
+    ? `<div class="card row">${img("star", 72)}<p class="grow">${t("all_done")}</p></div>`
+    : `<button class="island" data-open-lesson="${ni}" style="text-align:left;border:0;width:100%">${SCENE}<div class="label small">${t("today")}</div><h2>${t("lesson_n", { n: ni + 1 })} · ${titleOf(ni)}</h2><div class="label small" style="margin-top:8px;display:inline-flex;gap:6px;align-items:center;background:rgba(11,61,122,.55);padding:6px 12px;border-radius:999px">${t("resume")} ${ic("arrow", 16)}</div></button>`;
+  return `<div class="screen">
+    <div class="mascot-row">${img(away ? "orgulhosu" : "contentu", 72, MASCOT_NAME)}<div class="grow"><h1>${esc(greeting())}!</h1><p class="muted">${away ? t("away", { name: MASCOT_NAME }) : t("home_sub")}</p></div></div>
+    <div class="card stack"><div class="row"><div class="grow"><div class="eyebrow">${t("course")}</div><h3>${t("lessons_of", { a: n, b: LESSONS.length })}</h3></div>${img("map", 56)}</div><div class="progress" role="progressbar" aria-valuenow="${n}" aria-valuemin="0" aria-valuemax="${LESSONS.length}"><i style="width:${100 * n / LESSONS.length}%"></i></div></div>
+    ${lessonCard}
+    <div class="stats">
+      <div class="stat"><b>${streakNow()}</b><span>${t("st_streak")}</span></div>
+      <div class="stat"><b>${n}</b><span>${t("st_lessons")}</span></div>
+      <div class="stat"><b>${accuracy()}%</b><span>${t("st_acc")}</span></div>
+    </div>
+    <button class="link" data-go="progress" style="align-self:flex-start">${t("see_progress")}</button>
+    <button class="card row" data-go="culture" style="text-align:left;width:100%">${img("walk", 64)}<div class="grow"><h3>${t("culture_card")}</h3><p class="small muted">${t("culture_card_sub")}</p></div>${ic("arrow")}</button>
+    <button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 64)}<div class="grow"><h3>${t("support_card")}</h3><p class="small muted">${t("support_card_sub")}</p></div>${ic("arrow")}</button>
+  </div>`;
+}
+
+// ---- Lessons ----
+function lessonsView() {
+  const ni = nextLessonIdx();
+  return `<div class="screen">${header(t("lessons_t"))}
+    <div class="path stagger">${LESSONS.map((l, i) => {
+      const done = !!S.done[l.id], open = unlocked(i);
+      const cls = done ? "done" : !open ? "locked" : i === ni ? "current" : "";
+      return `<button class="lesson-item ${cls}" ${open ? `data-open-lesson="${i}"` : `aria-disabled="true" title="${t("locked")}"`}>
+        <span class="num">${done ? ic("check") : !open ? ic("lock", 20) : i + 1}</span>
+        <span class="grow"><span class="eyebrow">${t("lesson_n", { n: i + 1 })}</span><br><b>${titleOf(i)}</b><br><span class="small muted">${!open ? t("locked") : done ? `${t("done")} · ${S.done[l.id].best}%` : t("n_items", { n: l.entrees.length })}</span></span>
+      </button>`;
+    }).join("")}</div></div>`;
+}
+let lessonTab = "learn";
+function lessonView() {
+  const i = R.i, l = LESSONS[i], notes = l.entrees.filter(e => e.note && e.note !== "Nom de l'appli");
+  let body;
+  if (lessonTab === "learn") body = `<div class="stack">${l.entrees.map(phraseRow).join("")}</div>`;
+  else if (lessonTab === "culture") body = notes.length ? `<div class="stack">${notes.map(e => `<div class="phrase"><div class="grow"><div class="kr">${esc(kr(e))}</div><div class="tr">${esc(tr(e))}</div></div></div>`).join("")}</div>` : `<div class="card row">${img("pensativu", 64)}<p class="grow muted">${t("culture_none")}</p></div>`;
+  else body = `<div class="card stack" style="align-items:center;text-align:center">${img("motivadu", 120, MASCOT_NAME)}<h3>${t("n_items", { n: l.entrees.length })}</h3><button class="btn" data-start="${i}">${t("start_practice")}</button></div>`;
+  return `<div class="screen">${header(`${t("lesson_n", { n: i + 1 })}`, "lessons")}
+    <div class="island">${SCENE}<h2>${titleOf(i)}</h2><div class="label small">${t("n_items", { n: l.entrees.length })}</div></div>
+    <div class="tabs" role="tablist">${["learn", "practice", "culture"].map(k => `<button role="tab" data-tab="${k}" aria-selected="${lessonTab === k}">${t("tab_" + k)}</button>`).join("")}</div>
+    ${body}
+    ${lessonTab === "learn" ? `<div class="footer-bar"><button class="btn" data-start="${i}">${t("start_practice")}</button></div>` : ""}
+  </div>`;
+}
+function phraseRow(e) {
+  const f = e.formes[VARIANT];
+  const alts = (f.variantes_acceptees || []).length ? ` <span class="small muted">(${esc(f.variantes_acceptees.join(", "))})</span>` : "";
+  const audio = f.audio ? `<button class="iconbtn" data-audio="${esc(f.audio)}" aria-label="${t("listen")}">▶</button>` : "";
+  return `<div class="phrase">${audio}<div class="grow"><div class="kr">${esc(f.texte)}${alts}</div><div class="tr">${esc(tr(e))}</div></div></div>`;
+}
+
+// ---- Exercises ----
+let X = null; // current session
+function buildSession(entries, lessonIdx) {
+  const pool = shuffle(entries).slice(0, 8), qs = [];
+  pool.forEach((e, k) => {
+    const words = kr(e).split(/\s+/).length;
+    let type = ["tr", "kr", "type", "tr", "kr", "order", "type", "kr"][k % 8];
+    if (type === "order" && words < 3) type = "kr";
+    if (type === "type" && (words > 4 || kr(e).includes("/"))) type = "tr";
+    qs.push({ type, e });
+  });
+  const pairs = shuffle(entries).slice(0, 4);
+  if (pairs.length === 4) qs.splice(Math.min(4, qs.length), 0, { type: "match", pairs });
+  X = { lessonIdx, entries, qs, i: 0, right: 0, answered: false, sel: null, built: [], matched: [], pick: null, misses: 0 };
+}
+function distractors(e, f) {
+  const same = X.entries.filter(o => o.id !== e.id), other = LESSONS.flatMap(l => l.entrees).filter(o => o.id !== e.id);
+  const out = [], seen = new Set([f(e)]);
+  for (const o of shuffle(same).concat(shuffle(other))) { const v = f(o); if (!seen.has(v)) { seen.add(v); out.push(v); } if (out.length === 3) break; }
+  return out;
+}
+function exView() {
+  const q = X.qs[X.i], pct = 100 * X.i / X.qs.length;
+  if (!q.opts && (q.type === "tr" || q.type === "kr")) { const f = q.type === "tr" ? tr : kr; q.opts = shuffle([f(q.e), ...distractors(q.e, f)]); }
+  if (q.type === "order" && !q.chips) q.chips = shuffle(kr(q.e).split(/\s+/).map((w, i) => ({ w, i })));
+  if (q.type === "match" && !q.left) { q.left = shuffle(q.pairs.map(p => p.id)); q.right = shuffle(q.pairs.map(p => p.id)); }
+  let body = "";
+  const title = { tr: t("q_tr"), kr: t("q_kr"), type: t("q_type"), order: t("q_order"), match: t("q_match") }[q.type];
+  if (q.type === "tr" || q.type === "kr") {
+    const answer = q.type === "tr" ? tr(q.e) : kr(q.e);
+    body = `<div class="mascot-row">${img("kuriousu", 76)}<div class="bubble grow ${q.type === "tr" ? "prompt-kr" : "prompt-tr"}">${esc(q.type === "tr" ? kr(q.e) : tr(q.e))}</div></div>
+      <div class="stack">${q.opts.map((o, k) => {
+        let cls = ""; if (X.answered) { if (o === answer) cls = "right"; else if (k === X.sel) cls = "wrong"; } else if (k === X.sel) cls = "sel";
+        return `<button class="choice ${cls}" data-opt="${k}" ${X.answered ? "disabled" : ""}>${esc(o)}</button>`; }).join("")}</div>`;
+  } else if (q.type === "type") {
+    body = `<div class="mascot-row">${img("pensativu", 76)}<div class="bubble grow prompt-tr">${esc(tr(q.e))}</div></div>
+      <label class="field-label" for="ans">${t("q_type")}</label>
+      <input id="ans" class="answer-input" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="${t("type_ph")}" value="${esc(X.typed || "")}" ${X.answered ? "disabled" : ""}>
+      <p class="small muted">${t("accents")}</p>`;
+  } else if (q.type === "order") {
+    body = `<div class="mascot-row">${img("pensativu", 76)}<div class="bubble grow prompt-tr">${esc(tr(q.e))}</div></div>
+      <div class="slot" aria-live="polite">${X.built.map((ci, k) => `<button class="chip active" data-unbuild="${k}" ${X.answered ? "disabled" : ""}>${esc(q.chips[ci].w)}</button>`).join("")}</div>
+      <div class="chips">${q.chips.map((c, k) => `<button class="chip ${X.built.includes(k) ? "used" : ""}" data-build="${k}" ${X.answered ? "disabled" : ""}>${esc(c.w)}</button>`).join("")}</div>`;
+  } else if (q.type === "match") {
+    const byId = id => q.pairs.find(p => p.id === id);
+    body = `<div class="mascot-row">${img("animadu", 76)}<div class="bubble grow">${t("q_match")}</div></div>
+      <div class="match">${q.left.map((id, k) => {
+        const r = q.right[k];
+        const lc = X.matched.includes(id) ? "gone" : X.pick && X.pick.side === "l" && X.pick.id === id ? "sel" : "";
+        const rc = X.matched.includes(r) ? "gone" : X.pick && X.pick.side === "r" && X.pick.id === r ? "sel" : "";
+        return `<button class="choice ${lc}" data-ml="${id}">${esc(kr(byId(id)))}</button><button class="choice ${rc}" data-mr="${r}">${esc(tr(byId(r)))}</button>`;
+      }).join("")}</div>`;
+  }
+  const canCheck = q.type === "match" ? false : q.type === "order" ? X.built.length === q.chips.length : q.type === "type" ? true : X.sel !== null;
+  return `<div class="screen no-nav">
+    <div class="ex-top"><button class="iconbtn" data-quit aria-label="${t("quit")}">${ic("close", 26)}</button><div class="progress grow"><i style="width:${pct}%"></i></div></div>
+    <h2>${title}</h2>${body}
+    ${!X.answered && q.type !== "match" ? `<div class="footer-bar"><button class="btn" data-check ${canCheck ? "" : "disabled"}>${t("check")}</button></div>` : ""}
+  </div>${X.answered ? feedbackBar() : ""}`;
+}
+function feedbackBar() {
+  const q = X.qs[X.i], ok = X.lastOk;
+  const ans = q.type === "match" ? "" : q.type === "tr" ? tr(q.e) : kr(q.e);
+  return `<div class="feedback ${ok ? "ok" : "bad"} pop" role="status"><div class="inner">
+    <div class="row">${img(ok ? "contentu" : "motivadu", 56)}<div class="grow"><div class="title">${ok ? t("correct") : t("wrong")}</div>${!ok && ans ? `<div style="font-weight:800">${esc(ans)}</div>` : ""}</div></div>
+    <button class="btn ${ok ? "ok" : "bad"}" data-next>${t("next")}</button></div></div>`;
+}
+function checkAnswer() {
+  const q = X.qs[X.i]; let ok = false;
+  if (q.type === "tr") ok = q.opts[X.sel] === tr(q.e);
+  if (q.type === "kr") ok = q.opts[X.sel] === kr(q.e);
+  if (q.type === "type") { X.typed = ($("#ans") || {}).value || ""; ok = acceptedAnswers(q.e).includes(norm(X.typed)); }
+  if (q.type === "order") ok = norm(X.built.map(k => q.chips[k].w).join(" ")) === norm(kr(q.e));
+  finishQ(ok);
+}
+function finishQ(ok) { sfx(ok ? "right" : "wrong"); X.answered = true; X.lastOk = ok; if (ok) X.right++; S.right += ok ? 1 : 0; S.total += 1; save(); render(); }
+function nextQ() {
+  X.i++; X.answered = false; X.sel = null; X.built = []; X.typed = ""; X.matched = []; X.pick = null; X.misses = 0;
+  if (X.i >= X.qs.length) completeSession(); else render();
+}
+function completeSession() {
+  const pct = Math.round(100 * X.right / X.qs.length), xp = X.right * 10;
+  S.xp += xp;
+  const d = today();
+  if (S.lastDay !== d) { S.streak = S.lastDay && daysBetween(S.lastDay, d) === 1 ? S.streak + 1 : 1; S.lastDay = d; }
+  if (X.lessonIdx !== null) { const id = LESSONS[X.lessonIdx].id, prev = S.done[id]; S.done[id] = { best: Math.max(pct, prev ? prev.best : 0) }; }
+  save(); go("finish", { pct, xp, lessonIdx: X.lessonIdx });
+}
+function finishView() {
+  const again = R.lessonIdx !== null ? `data-start="${R.lessonIdx}"` : "data-review";
+  return `<div class="screen no-nav" style="align-items:center;text-align:center;justify-content:center">
+    ${img("star", 200, MASCOT_NAME)}<h1>${t("fin_t")}</h1>
+    <div class="stats" style="width:100%;grid-template-columns:1fr 1fr"><div class="stat"><b>${t("fin_xp", { n: R.xp })}</b><span>XP</span></div><div class="stat"><b>${R.pct}%</b><span>${t("st_acc")}</span></div></div>
+    <button class="btn" data-go="${R.lessonIdx !== null ? "lessons" : "practice"}">${R.lessonIdx !== null ? t("back_lessons") : t("cont")}</button>
+    <button class="btn light" ${again}>${t("again")}</button></div>`;
+}
+
+// ---- Practice, vocab, culture, progress, profile ----
+function practiceView() {
+  const done = LESSONS.filter(l => S.done[l.id]);
+  return `<div class="screen">${header(t("prac_t"))}
+    <div class="card stack" style="align-items:center;text-align:center">${img(done.length ? "laptop" : "pensativu", 150, MASCOT_NAME)}
+    <p>${done.length ? t("prac_sub") : t("prac_empty")}</p>
+    ${done.length ? `<button class="btn" data-review>${t("prac_start")}</button>` : `<button class="btn" data-open-lesson="0">${t("lesson_n", { n: 1 })} · ${titleOf(0)}</button>`}</div></div>`;
+}
+let vq = "", vf = "all";
+function vocabView() {
+  const list = LESSONS.flatMap((l, i) => l.entrees.map(e => ({ e, i }))).filter(({ e, i }) => (vf === "all" || vf === i) && (!vq || norm(kr(e) + " " + tr(e)).includes(norm(vq))));
+  return `<div class="screen">${header(t("vocab_t"))}
+    <label for="vsearch" class="field-label" hidden>${t("search")}</label>
+    <input id="vsearch" class="search" type="search" placeholder="${t("search")}" value="${esc(vq)}" autocomplete="off">
+    <div class="filter-row">${[["all", t("all")], ...LESSONS.map((_, i) => [i, titleOf(i)])].map(([k, n]) => `<button class="pill" data-vf="${k}" aria-pressed="${vf === k}">${esc(n)}</button>`).join("")}</div>
+    <div class="stack" id="vlist">${list.length ? list.map(({ e }) => phraseRow(e)).join("") : `<p class="muted">${t("none", { q: esc(vq) })}</p>`}</div></div>`;
+}
+function cultureView() {
+  const words = ["L09-07", "L10-01", "L05-01", "L10-11"].map(id => LESSONS.flatMap(l => l.entrees).find(e => e.id === id));
+  return `<div class="screen">${header(t("cult_t"), "home")}
+    <div class="island" style="min-height:170px">${SCENE}<div class="label small">Sotavento</div><h1 style="color:#fff">${t("sant_t")}</h1></div>
+    <p>${t("sant_p")}</p>
+    <h2>${t("cult_words")}</h2>
+    <div class="stack">${words.map(phraseRow).join("")}</div></div>`;
+}
+function progressView() {
+  return `<div class="screen">${header(t("prog_t"), "home")}
+    <div class="stats"><div class="stat"><b>${S.xp}</b><span>${t("xp")}</span></div><div class="stat"><b>${streakNow()}</b><span>${t("streak")}</span></div><div class="stat"><b>${accuracy()}%</b><span>${t("acc")}</span></div></div>
+    <div class="card stack"><div class="row"><h3 class="grow">${t("lessons_t")}</h3><span class="muted small">${t("lessons_of", { a: doneCount(), b: LESSONS.length })}</span></div>
+    <div class="progress"><i style="width:${100 * doneCount() / LESSONS.length}%"></i></div>
+    ${LESSONS.map((l, i) => `<div class="row small"><span style="color:${S.done[l.id] ? "var(--ok)" : "var(--line)"}">${ic("check", 18)}</span><span class="grow">${t("lesson_n", { n: i + 1 })} · ${titleOf(i)}</span><span class="muted">${S.done[l.id] ? `${t("best")} ${S.done[l.id].best}%` : ""}</span></div>`).join("")}</div></div>`;
+}
+let resetAsk = false;
+function authBox() {
+  if (authSent) return `<div class="card stack" role="status"><h3>${t("email_sent_t")}</h3><p class="small">${t("email_sent")}</p><button class="btn light" data-auth-again>${t("email_again")}</button></div>`;
+  return `<form class="card stack" id="authform" novalidate><h3>${t("auth_t")}</h3>
+    <label class="field-label" for="authmail">${t("email_label")}</label>
+    <input id="authmail" class="answer-input" type="email" inputmode="email" autocomplete="email" placeholder="nome@exemplo.com" style="font-size:1rem" aria-describedby="autherr">
+    <p id="autherr" class="small" style="color:var(--bad)">${esc(authErr)}</p>
+    <button class="btn" type="submit">${t("email_send")}</button><p class="small muted">${t("email_how")}</p></form>`;
+}
+function profileView() {
+  return `<div class="screen">${header(t("prof_t"))}
+    <div class="card row">${img("simpatiku", 72, MASCOT_NAME)}<div class="grow">${CLOUD && ME.name ? `<h3>${esc(ME.name)}</h3>` : ""}<p class="small">${CLOUD ? t("prof_cloud") : SUPA ? t("auth_why") : CAN_CLOUD && signedOut() ? t("signed_out_p") : t("prof_local")}</p></div></div>
+    ${CLOUD ? `<div class="card stack"><p class="small muted">${t("logout_p")}</p><button class="btn light" data-logout>${ic("back")} ${t("logout")}</button></div>` : SUPA ? authBox() : CAN_CLOUD && signedOut() ? `<button class="btn" data-login>${t("login")}</button>` : ""}
+    <div class="card stack">
+      <label class="field-label" for="setlang">${t("set_lang")}</label>
+      <select id="setlang" class="answer-input" style="font-size:1rem">${Object.entries(LANGS).map(([k, n]) => `<option value="${k}" ${k === L ? "selected" : ""}>${n}</option>`).join("")}</select>
+      <div class="row"><span class="field-label grow">${t("set_sound")}</span>${soundBtn()}</div>
+      <div class="field-label">${t("set_var")}</div><p class="muted">Santiago · Sotavento (Santiago, Brava, Fogo, Maio)</p>
+    </div>
+    <button class="card row" data-go="progress" style="text-align:left;width:100%"><span class="grow"><b>${t("see_progress")}</b></span>${ic("arrow")}</button>
+    <button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>
+    <div class="card stack"><h3>${t("privacy")}</h3><p class="small muted">${t("privacy_p")}</p></div>
+    <div class="card stack">${resetAsk ? `<p>${t("reset_q")}</p><div class="row"><button class="btn bad" data-reset-yes>${t("reset_yes")}</button><button class="btn light" data-reset-no>${t("cancel")}</button></div>` : `<button class="btn light" data-reset>${t("reset")}</button>`}</div>
+  </div>`;
+}
+
+// ---- Support page ----
+let amt = null, freeVal = "";
+const fmtEUR = n => new Intl.NumberFormat(L, { style: "currency", currency: "EUR" }).format(n);
+function freeValid() { const n = Number(String(freeVal).replace(",", ".")); return /^\d+([.,]\d{1,2})?$/.test(String(freeVal).trim()) && n >= 1 && n <= 1000 ? n : null; }
+function supportView() {
+  const link = amt ? STRIPE_LINKS[amt] : "";
+  const anyLink = Object.values(STRIPE_LINKS).some(Boolean);
+  const chosen = amt === "libre" ? freeValid() : amt ? Number(amt) : null;
+  let status;
+  if (!amt) status = `<p class="small muted" id="amtstatus">${t("amt_none")}</p>`;
+  else if (amt === "libre" && chosen === null) status = `<p class="err" id="amtstatus">${freeVal ? t("amt_err") : t("amt_none")}</p>`;
+  else status = `<p style="font-weight:800" id="amtstatus">${t("amt_chosen", { a: fmtEUR(chosen) })}</p>${amt === "libre" ? `<p class="small muted">${t("sup_free_note")}</p>` : ""}`;
+  const ready = chosen !== null && !!link;
+  const cta = ready
+    ? `<a class="btn sun" href="${esc(link)}" target="_blank" rel="noopener">${ic("heart")} ${t("sup_cta")}</a><p class="small muted">${t("sup_redirect")}</p>`
+    : `<button class="btn sun" disabled>${ic("heart")} ${t("sup_cta")}</button>`;
+  return `<div class="screen">${header("", "profile")}
+    <div class="mascot-row">${img("simpatiku", 100, MASCOT_NAME)}<div class="grow"><h1>Ajudanu fazi Mar Azul ta kresi !</h1><p class="muted" style="font-weight:700">${t("sup_sub")}</p></div></div>
+    <p>${t("sup_intro")}</p>
+    ${anyLink ? "" : `<div class="notice" role="status">${t("sup_unavail")}</div>`}
+    <h2>${t("sup_choose")}</h2>
+    <div class="amounts" role="group" aria-label="${t("sup_choose")}">
+      ${[["2", "a2"], ["5", "a5"], ["10", "a10"]].map(([v, k]) => `<button class="amount" data-amt="${v}" aria-pressed="${amt === v}"><b>${fmtEUR(Number(v)).replace(/[.,]00/, "")}</b><span>${t(k)}</span></button>`).join("")}
+      <button class="amount" data-amt="libre" aria-pressed="${amt === "libre"}"><b>${t("afree")}</b><span>${t("afree_sub")}</span></button>
+    </div>
+    ${amt === "libre" ? `<div class="stack" style="gap:6px"><label class="field-label" for="freeamt">${t("amt_label")}</label><input id="freeamt" class="answer-input" inputmode="decimal" autocomplete="off" placeholder="15" value="${esc(freeVal)}"></div>` : ""}
+    <div id="ctawrap" class="stack">${status}${cta}</div>
+    <p class="small muted">${t("sup_reassure")}</p>
+    <h2>${t("why_t")}</h2>
+    <div class="stack">${[["book", "w1"], ["heart", "w2"], ["spark", "w3"]].map(([i, k]) => `<div class="why"><span class="ic">${ic(i)}</span><div><h3>${t(k)}</h3><p class="small muted">${t(k + "p")}</p></div></div>`).join("")}</div>
+    <div class="card stack" style="background:var(--navy);border:0;color:#fff"><div class="row">${img("walk", 64)}<h2 class="grow" style="color:#fff">${t("comm_t")}</h2></div><p style="color:#DCEBFA">${t("comm_p")}</p></div>
+    <button class="btn light" data-go="lessons">${t("keep")}</button>
+    <p class="small muted">${t("legal")}</p>
+    <button class="link small" data-go="profile" style="align-self:flex-start">${t("privacy")}</button>
+  </div>`;
+}
+
+// ---- Events ----
+function bind() {
+  const app = $("#app");
+  app.onclick = ev => {
+    const b = ev.target.closest("button, a"); if (!b) return;
+    const d = b.dataset;
+    if (d.go) { if (d.go === "lessons") lessonTab = "learn"; resetAsk = false; return go(d.go); }
+    if (d.ob) { obStep = Number(d.ob); if (obStep > 0) seaStop(); return render(); }
+    if ("sound" in d) { setSound(!SOUND_ON); return render(); }
+    if (d.lang) { L = d.lang; S.lang = L; save(); return render(); }
+    if ("finishOb" in d) { S.lang = L; S.onboarded = true; save(); return go("home"); }
+    if (d.openLesson !== undefined) { lessonTab = "learn"; return go("lesson", { i: Number(d.openLesson) }); }
+    if (d.tab) { lessonTab = d.tab; return render(); }
+    if (d.start !== undefined) { const i = Number(d.start); buildSession(LESSONS[i].entrees, i); return go("ex"); }
+    if ("review" in d) { const ents = LESSONS.filter(l => S.done[l.id]).flatMap(l => l.entrees); buildSession(ents, null); return go("ex"); }
+    if ("quit" in d) return go(X && X.lessonIdx !== null ? "lesson" : "practice", X && X.lessonIdx !== null ? { i: X.lessonIdx } : {});
+    if (d.opt !== undefined) { X.sel = Number(d.opt); return render(); }
+    if (d.build !== undefined) { X.built.push(Number(d.build)); return render(); }
+    if (d.unbuild !== undefined) { X.built.splice(Number(d.unbuild), 1); return render(); }
+    if (d.ml || d.mr) return pickMatch(d.ml ? "l" : "r", d.ml || d.mr);
+    if ("check" in d) return checkAnswer();
+    if ("next" in d) return nextQ();
+    if (d.vf !== undefined) { vf = d.vf === "all" ? "all" : Number(d.vf); return render(); }
+    if (d.amt) { amt = d.amt; render(); if (amt === "libre") { const f = $("#freeamt"); if (f) f.focus(); } return; }
+    if ("logout" in d) return signOut();
+    if ("coverLogin" in d) { if (!S.onboarded) { S.lang = L; S.onboarded = true; save(); } return go("profile"); }
+    if ("authAgain" in d) { authSent = false; return render(); }
+    if ("login" in d) { signIn(); return; }
+    if ("reset" in d) { resetAsk = true; return render(); }
+    if ("resetNo" in d) { resetAsk = false; return render(); }
+    if ("resetYes" in d) { const lang = S.lang; S = defaults(); S.lang = lang; S.onboarded = true; save(); resetAsk = false; render(); return toast(t("reset_done")); }
+  };
+  const ans = $("#ans"); if (ans && !X.answered) { ans.focus(); ans.onkeydown = e => { if (e.key === "Enter") { e.preventDefault(); checkAnswer(); } }; }
+  const vs = $("#vsearch"); if (vs) vs.oninput = () => { vq = vs.value; const pos = vs.selectionStart; render(); const n = $("#vsearch"); n.focus(); n.setSelectionRange(pos, pos); };
+  const af = $("#authform"); if (af) af.onsubmit = e => { e.preventDefault(); sendMagicLink($("#authmail").value.trim()); };
+  const sl = $("#setlang"); if (sl) sl.onchange = () => { L = sl.value; S.lang = L; save(); render(); };
+  const fa = $("#freeamt"); if (fa) fa.oninput = () => { freeVal = fa.value; const pos = fa.selectionStart; render(); const n = $("#freeamt"); n.focus(); n.setSelectionRange(pos, pos); };
+}
+function pickMatch(side, id) {
+  const q = X.qs[X.i];
+  if (!X.pick || X.pick.side === side) { X.pick = { side, id }; return render(); }
+  if (X.pick.id === id) { X.matched.push(id); X.pick = null; if (X.matched.length === q.pairs.length) return finishQ(X.misses === 0); return render(); }
+  X.misses++; X.pick = null; toast(t("wrong").split(".")[0] + "."); render();
+}
+
+// ---- Djodje: animated SVG mascot (moods, blink, breathing, tail, eyes follow the pointer, reacts to taps) ----
+const DJ_MOOD = { contentu: "happy", animadu: "excited", kuriousu: "curious", surprezu: "surprised", motivadu: "encourage", pensativu: "thinking", orgulhosu: "sleep", simpatiku: "wave", walk: "happy", map: "curious", laptop: "thinking", star: "celebrate", hero: "wave", icon: "happy" };
+function djodje(mood = "happy", size = 96, label = "") {
+  const up = ["excited", "celebrate"].includes(mood);
+  const closed = mood === "sleep";
+  const eye = (cx) => closed
+    ? `<path d="M${cx - 12} 72 Q${cx} 62 ${cx + 12} 72" stroke="#0B3D7A" stroke-width="4" stroke-linecap="round" fill="none"/>`
+    : `<ellipse cx="${cx}" cy="70" rx="14" ry="16" fill="#fff" stroke="#0B3D7A" stroke-opacity=".15"/>
+       <g class="pupil"><circle cx="${cx + 1}" cy="72" r="9" fill="#5A3416"/><circle cx="${cx + 1}" cy="72" r="5" fill="#1A0E06"/><circle cx="${cx + 4}" cy="68" r="3" fill="#fff"/><circle cx="${cx - 2}" cy="76" r="1.4" fill="#fff"/></g>`;
+  const brow = { curious: ["M64 44 Q76 34 90 44", "M110 50 Q122 46 134 50"], surprised: ["M64 42 Q77 34 90 42", "M110 42 Q123 34 136 42"], thinking: ["M64 50 Q77 46 90 52", "M110 46 Q122 40 134 46"] }[mood] || ["M65 49 Q77 43 89 49", "M111 49 Q123 43 135 49"];
+  const mouth = {
+    surprised: `<ellipse cx="100" cy="110" rx="10" ry="13" fill="#7A1F2B"/>`,
+    thinking: `<path d="M90 106 Q100 111 112 104" stroke="#7A1F2B" stroke-width="4" stroke-linecap="round" fill="none"/>`,
+    sleep: `<path d="M90 104 Q100 112 110 104" stroke="#7A1F2B" stroke-width="4" stroke-linecap="round" fill="none"/>`,
+    encourage: `<path d="M80 98 Q100 122 120 98 Q100 106 80 98Z" fill="#7A1F2B"/>`
+  }[mood] || `<path d="M74 96 Q100 136 126 96 Q100 104 74 96Z" fill="#7A1F2B"/><path d="M87 116 Q100 106 113 116 Q100 126 87 116Z" fill="#F28B8B"/><path d="M80 98 Q100 104 120 98 L118 103 Q100 108 82 103Z" fill="#fff"/>`;
+  const extras = {
+    curious: `<text x="150" y="34" font-family="Baloo 2, sans-serif" font-weight="800" font-size="34" fill="#0B3D7A" class="float">?</text>`,
+    excited: `<g stroke="#F9B825" stroke-width="5" stroke-linecap="round" class="spark"><path d="M30 34 L40 44"/><path d="M22 58 L36 60"/><path d="M170 34 L160 44"/><path d="M178 58 L164 60"/></g>`,
+    sleep: `<g font-family="Baloo 2, sans-serif" font-weight="800" fill="#2F8FE0" class="zzz"><text x="146" y="40" font-size="20">z</text><text x="160" y="24" font-size="15">z</text></g>`,
+    celebrate: `<g class="confetti"><rect x="26" y="20" width="8" height="8" fill="#F9B825" transform="rotate(20 30 24)"/><rect x="164" y="16" width="8" height="8" fill="#4FD1E0" transform="rotate(-25 168 20)"/><circle cx="40" cy="60" r="4" fill="#C8463D"/><circle cx="168" cy="62" r="4" fill="#F9B825"/><path d="M100 2 l4 9 10 1-7 7 2 10-9-5-9 5 2-10-7-7 10-1z" fill="#F9B825"/></g>`,
+    encourage: `<g stroke="#F9B825" stroke-width="4" stroke-linecap="round" class="spark"><path d="M170 40 L162 48"/><path d="M180 60 L168 62"/></g>`
+  }[mood] || "";
+  const armR = mood === "thinking" ? `<path d="M138 142 Q140 118 116 112 Q112 122 124 128 Q126 140 130 150Z" fill="#2F8FE0" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/>` : `<path d="M138 134 Q164 144 170 168 Q154 168 136 152Z" fill="#2F8FE0" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/>`;
+  return `<svg class="dj ${mood}${up ? " up" : ""}" viewBox="-10 -6 220 232" width="${size}" height="${Math.round(size * 232 / 220)}" role="img" aria-label="${esc(label || MASCOT_NAME)}" tabindex="0">
+  ${extras}
+  <g class="b">
+    <g class="tail"><path d="M136 166 Q170 164 186 138 Q180 170 192 194 Q166 186 136 184Z" fill="#2577CF" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/></g>
+    <rect x="46" y="128" width="108" height="58" rx="18" fill="#7B4A22"/>
+    <rect x="68" y="186" width="22" height="18" rx="6" fill="#2F8FE0"/><rect x="110" y="186" width="22" height="18" rx="6" fill="#2F8FE0"/>
+    <ellipse cx="78" cy="206" rx="18" ry="9" fill="#1F64B8"/><ellipse cx="122" cy="206" rx="18" ry="9" fill="#1F64B8"/>
+    <ellipse cx="74" cy="203" rx="8" ry="3" fill="#5BA8EC"/><ellipse cx="118" cy="203" rx="8" ry="3" fill="#5BA8EC"/>
+    <path d="M56 152 Q56 126 82 122 L118 122 Q144 126 144 152 L148 182 Q150 198 128 198 L72 198 Q50 198 52 182 Z" fill="#FBF3E4" stroke="#E4D6BC" stroke-width="2"/>
+    <path d="M57 168 Q71 160 85 168 T113 168 T143 168" stroke="#2F8FE0" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path d="M57 180 Q71 172 85 180 T113 180 T145 180" stroke="#0B3D7A" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <g fill="#F9B825"><path d="M92 138 l2 4 4 .5-3 3 1 4-4-2-4 2 1-4-3-3 4-.5z"/><path d="M106 134 l1.6 3 3.4.5-2.5 2.4.6 3.4-3.1-1.6-3.1 1.6.6-3.4-2.5-2.4 3.4-.5z"/></g>
+    <path d="M90 126 L88 146 M110 126 L112 146" stroke="#D9CBB2" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M66 126 L62 176 M134 126 L138 176" stroke="#8A5A2B" stroke-width="8" stroke-linecap="round"/>
+    <g class="armL"><path d="M62 134 Q36 144 30 168 Q46 168 64 152Z" fill="#2F8FE0" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/></g>
+    <g class="armR">${armR}</g>
+    <path d="M86 32 Q104 -4 130 28 Z" fill="#2577CF" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/>
+    <ellipse cx="100" cy="78" rx="66" ry="56" fill="#2F8FE0" stroke="#174F96" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40 66 Q44 40 70 30" stroke="#5BA8EC" stroke-width="6" stroke-linecap="round" fill="none" opacity=".7"/>
+    <path d="M44 92 Q100 150 156 92 Q150 130 100 134 Q50 130 44 92Z" fill="#fff"/>
+    <ellipse cx="100" cy="104" rx="46" ry="24" fill="#fff"/>
+    <path d="M158 80 l4 10 M162 76 l4 10" stroke="#1F64B8" stroke-width="3" stroke-linecap="round"/>
+    <ellipse cx="62" cy="96" rx="8" ry="4.5" fill="#F7A1A1" opacity=".7"/><ellipse cx="138" cy="96" rx="8" ry="4.5" fill="#F7A1A1" opacity=".7"/>
+    <g class="eyes">${eye(78)}${eye(122)}</g>
+    <path d="${brow[0]}" stroke="#0B3D7A" stroke-width="4" stroke-linecap="round" fill="none"/><path d="${brow[1]}" stroke="#0B3D7A" stroke-width="4" stroke-linecap="round" fill="none"/>
+    ${mouth}
+  </g></svg>`;
+}
+function img(name, size, alt = "") { return `<span class="djwrap">${djodje(DJ_MOOD[name] || "happy", size, alt)}</span>`; }
+
+// Eyes follow the pointer
+let djRAF = 0;
+document.addEventListener("pointermove", ev => {
+  if (djRAF || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  djRAF = requestAnimationFrame(() => {
+    djRAF = 0;
+    document.querySelectorAll(".dj").forEach(svg => {
+      const r = svg.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height * 0.32;
+      const dx = ev.clientX - cx, dy = ev.clientY - cy, d = Math.hypot(dx, dy) || 1, m = Math.min(4, d / 40);
+      svg.querySelectorAll(".pupil").forEach(p => p.style.transform = `translate(${(dx / d * m).toFixed(1)}px, ${(dy / d * m).toFixed(1)}px)`);
+    });
+  });
+});
+// Tap or Enter: Djodje jumps, waves and says a validated Kriolu phrase
+const DJ_SAYS = ["L10-02", "L05-12", "L10-03", "L10-01", "L01-07", "L01-06"];
+function pokeDjodje(svg) {
+  if (typeof sfx === "function") sfx("poke");
+  svg.classList.remove("poke"); void svg.getBoundingClientRect(); svg.classList.add("poke");
+  const wrap = svg.closest(".djwrap"); if (!wrap) return;
+  const pick = DJ_SAYS[Math.floor(Math.random() * DJ_SAYS.length)];
+  const e = LESSONS.flatMap(l => l.entrees).find(x => x.id === pick);
+  wrap.querySelectorAll(".djsay").forEach(n => n.remove());
+  const b = document.createElement("span"); b.className = "djsay"; b.setAttribute("role", "status");
+  b.innerHTML = `<b>${esc(kr(e))}</b><small>${esc(tr(e))}</small>`;
+  wrap.appendChild(b); setTimeout(() => b.remove(), 2600); setTimeout(() => svg.classList.remove("poke"), 900);
+}
+document.addEventListener("click", ev => { const s = ev.target.closest(".dj"); if (s) { ev.stopPropagation(); pokeDjodje(s); } }, true);
+document.addEventListener("keydown", ev => { const s = ev.target.closest && ev.target.closest(".dj"); if (s && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); pokeDjodje(s); } });
+
+
+// ---- Sounds: all synthesised with Web Audio (no files), off with one tap ----
+const SND_KEY = "marazul.sound";
+let SOUND_ON = (() => { try { return localStorage.getItem(SND_KEY) !== "0"; } catch (e) { return true; } })();
+let AC = null, SEA = null;
+function ac() {
+  if (!AC) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; AC = new C(); }
+  if (AC.state === "suspended") AC.resume();
+  return AC;
+}
+function noiseBuf(a, secs) {
+  const b = a.createBuffer(1, a.sampleRate * secs, a.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  return b;
+}
+function tone(freq, start, dur, type = "sine", vol = .18) {
+  const a = ac(); if (!a) return;
+  const o = a.createOscillator(), g = a.createGain(), t0 = a.currentTime + start;
+  o.type = type; o.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0 + .015); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + .05);
+  return o;
+}
+const SFX = {
+  right() { tone(660, 0, .18, "triangle"); tone(990, .09, .28, "triangle"); },
+  wrong() { tone(220, 0, .22, "sine", .16); tone(185, .1, .3, "sine", .14); },
+  finish() { [523, 659, 784, 1047].forEach((f, i) => tone(f, i * .1, .35, "triangle", .16)); },
+  poke() { const o = tone(380, 0, .2, "sine", .2); if (o) o.frequency.exponentialRampToValueAtTime(900, AC.currentTime + .15); },
+  splash(vol = .35) {
+    const a = ac(); if (!a) return;
+    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), t0 = a.currentTime;
+    s.buffer = noiseBuf(a, .6); f.type = "bandpass"; f.frequency.setValueAtTime(1800, t0); f.frequency.exponentialRampToValueAtTime(400, t0 + .5); f.Q.value = .8;
+    g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + .55);
+    s.connect(f).connect(g).connect(a.destination); s.start(t0);
+  },
+};
+function sfx(name) { if (SOUND_ON && !document.hidden) try { SFX[name](); } catch (e) {} }
+// Gentle sea: looped noise through a low-pass filter whose cutoff rises and falls like a swell
+function seaStart() {
+  if (SEA || !SOUND_ON) return; const a = ac(); if (!a) return;
+  const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(), lfo = a.createOscillator(), lg = a.createGain();
+  s.buffer = noiseBuf(a, 4); s.loop = true; f.type = "lowpass"; f.frequency.value = 500;
+  lfo.frequency.value = .12; lg.gain.value = 350; lfo.connect(lg).connect(f.frequency);
+  g.gain.setValueAtTime(0, a.currentTime); g.gain.linearRampToValueAtTime(.12, a.currentTime + 2);
+  s.connect(f).connect(g).connect(a.destination); s.start(); lfo.start();
+  SEA = { s, lfo, g };
+}
+function seaStop() {
+  if (!SEA) return; const { s, lfo, g } = SEA; SEA = null;
+  try { g.gain.linearRampToValueAtTime(0, AC.currentTime + .6); s.stop(AC.currentTime + .7); lfo.stop(AC.currentTime + .7); } catch (e) {}
+}
+function setSound(on) { SOUND_ON = on; try { localStorage.setItem(SND_KEY, on ? "1" : "0"); } catch (e) {} if (!on) seaStop(); else if (R.v === "cover") seaStart(); }
+const soundBtn = () => `<button class="iconbtn soundbtn" data-sound aria-pressed="${SOUND_ON}" aria-label="${t(SOUND_ON ? "snd_off" : "snd_on")}">${SOUND_ON
+  ? `<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
+  : `<svg viewBox="0 0 24 24" width="24" height="24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 9l6 6M22 9l-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`}</button>`;
+// Browsers only allow sound after a tap: start the sea on the first one if the cover is showing
+document.addEventListener("pointerdown", () => { if (R.v === "cover" || (!S.onboarded && obStep === 0)) seaStart(); }, { capture: true });
+// Splash each time a cover shark leaves or dives back into the water (timed off its CSS animation)
+setInterval(() => {
+  if (!SEA) return;
+  document.querySelectorAll(".cover .jumper").forEach(el => {
+    const an = el.getAnimations && el.getAnimations()[0]; if (!an) return;
+    const dur = an.effect.getComputedTiming().duration, p = ((an.currentTime % dur) + dur) % dur / dur;
+    const prev = el._p || 0; el._p = p;
+    if ((prev < .55 && p >= .55) || (prev < .9 && p >= .9)) sfx("splash");
+  });
+}, 100);
+
+
+// Open a bare #token view on load (home, lessons, practice, vocab, profile, soutenir, culture, progress)
+(function () { const h = location.hash.slice(1); if (S.onboarded && ["home", "lessons", "practice", "vocab", "profile", "soutenir", "culture", "progress"].includes(h)) R = { v: h }; })();
+render();
+</script>
+</body></html>
