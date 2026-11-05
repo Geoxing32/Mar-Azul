@@ -112,6 +112,8 @@ p { margin: 0; }
 .mic[disabled] { background: #B9C3D1; box-shadow: 0 5px 0 #9AA6B6; }
 @keyframes micpulse { 50% { box-shadow: 0 5px 0 #8F2A23, 0 0 0 12px rgba(217,72,62,.18); } }
 @media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } }
+.mic.small-mic { width: 48px; height: 48px; flex: none; box-shadow: 0 3px 0 var(--navy); }
+.mic.small-mic.on { box-shadow: 0 3px 0 #8F2A23; }
 .mic-status { text-align: center; min-height: 2.6em; font-weight: 700; }
 .phrase .note { font-size: .8rem; color: var(--ocean); font-weight: 700; }
 
@@ -571,6 +573,7 @@ async function connectSupabase() {
   if (R.v === "cover" && S.onboarded) R = { v: "home" };
   checkBadges(); render();
   checkAdmin();
+  checkRecorder();
   startPing();
 }
 // Presence: while a signed-in learner has the app open, tell the server every minute (the admin sees who is online)
@@ -624,7 +627,7 @@ connectProfile();
 async function signOut() {
   clearTimeout(cloudTimer);
   if (CLOUD) { try { await CLOUD.set(cloudPayload()); } catch (e) {} try { if (CLOUD.out) await CLOUD.out(); } catch (e) {} }
-  CLOUD = null; ME = { name: "" }; IS_ADMIN = false; ADM = null; gameSignOut(); clearInterval(pingTimer);
+  CLOUD = null; ME = { name: "" }; IS_ADMIN = false; CAN_RECORD = false; ADM = null; gameSignOut(); clearInterval(pingTimer);
   try { localStorage.setItem(OUT_KEY, "1"); } catch (e) {}
   const lang = S.lang; S = defaults(); S.lang = lang; S.onboarded = true;
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {}
@@ -724,6 +727,7 @@ function render() {
     case "course": html = courseView(); break;
     case "board": html = boardView(); break;
     case "admin": html = IS_ADMIN ? adminView() : profileView(); break;
+    case "voices": html = CAN_RECORD ? voicesView() : profileView(); break;
     case "soutenir": html = DONATIONS_ON ? supportView() : homeView(); break;
     default: html = homeView();
   }
@@ -733,7 +737,7 @@ function render() {
   gameAfterRender();
 }
 function navBar() {
-  const cur = R.v === "lesson" ? "lessons" : ["culture", "progress", "soutenir", "admin", "avatar", "course"].includes(R.v) ? (["culture", "course"].includes(R.v) ? "home" : "profile") : R.v;
+  const cur = R.v === "lesson" ? "lessons" : ["culture", "progress", "soutenir", "admin", "avatar", "course", "voices"].includes(R.v) ? (["culture", "course"].includes(R.v) ? "home" : "profile") : R.v;
   return `<nav class="nav" aria-label="Main"><div class="inner">${NAV.map(n => `<button data-go="${n}" ${cur === n ? 'aria-current="page"' : ""}><svg viewBox="0 0 24 24">${ICONS[n]}</svg>${t("nav_" + n)}</button>`).join("")}</div></nav>`;
 }
 const header = (title, backTo) => `<div class="row">${backTo ? `<button class="iconbtn" data-go="${backTo}" aria-label="${t("back")}">${ic("back", 26)}</button>` : ""}<h1 class="grow">${title}</h1></div>`;
@@ -1011,6 +1015,7 @@ function profileView() {
       <div class="field-label">${t("set_var")}</div><p class="muted">Santiago · Sotavento (Santiago, Brava, Fogo, Maio)</p>
     </div>
     <button class="card row" data-go="progress" style="text-align:left;width:100%"><span class="grow"><b>${t("see_progress")}</b></span>${ic("arrow")}</button>
+    ${CAN_RECORD ? `<button class="card row" data-go="voices" style="text-align:left;width:100%"><span class="grow"><b>${t("rec_card")}</b><br><span class="small muted">${t("rec_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${IS_ADMIN ? `<button class="card row" data-admin style="text-align:left;width:100%"><span class="grow"><b>${t("adm_card")}</b><br><span class="small muted">${t("adm_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${DONATIONS_ON ? `<button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>` : ""}
     <div class="card stack"><h3>${t("privacy")}</h3><p class="small muted">${t("privacy_p")}</p></div>
@@ -1123,6 +1128,8 @@ function bind() {
     if (d.amt) { amt = d.amt; render(); if (amt === "libre") { const f = $("#freeamt"); if (f) f.focus(); } return; }
     if ("logout" in d) return signOut();
     if ("admin" in d) { go("admin"); return loadAdmin(); }
+    if (d.rec) return RC.id === d.rec ? recStop() : recStart(d.rec);
+    if (d.recplay) return recPlay(d.recplay);
     if ("admRefresh" in d) return loadAdmin();
     if ("coverLogin" in d) { if (!S.onboarded) { S.lang = L; S.onboarded = true; save(); } return go("profile"); }
     if ("authAgain" in d) { authSent = false; return render(); }
@@ -1339,7 +1346,8 @@ function sayEntry(e) {
   if ("speechSynthesis" in window) speechSynthesis.cancel();
   if (!isKea()) return synthSay(plain(learn(e)).split("/")[0], LOCALE[C()]);
   const f = e.formes[VARIANT];
-  if (f.audio) { voiceAudio = new Audio(f.audio); voiceAudio.play().catch(() => synthSay(f.texte)); return; }
+  const url = recUrl(e);
+  if (url) { voiceAudio = new Audio(url); voiceAudio.play().catch(() => synthSay(f.texte)); return; }
   synthSay(f.texte);
 }
 let synthNoted = false;
@@ -1416,6 +1424,96 @@ function speakBody(q) {
     <div class="mic-wrap"><button class="mic ${X.listening ? "on" : ""}" data-mic aria-label="${t("mic_tap")}" ${X.answered ? "disabled" : ""}>${ic("mic", 40)}</button>
     <p class="small mic-status" role="status" aria-live="polite">${status}</p></div>
     ${X.answered ? "" : `<button class="btn light" data-skip-say>${t("skip_say")}</button>`}`;
+}
+
+
+// ---- Real Kriolu voices: recorded in the app by an admin or a listed speaker, stored in Supabase Storage ----
+// Bucket "voix" (public), path <variant>/<entry id>. Setup SQL: nos-kriolu/supabase/voix.sql
+const VOICE_BUCKET = "voix";
+const RT = {
+  en: { rec_card: "Record the voices", rec_card_sub: "Your voice replaces the computer voice", rec_t: "Kriolu voices", rec_count: "{n} of {t} recorded", rec_tip: "Find a quiet spot. Tap the microphone, say the phrase, tap again. You can redo a word anytime.", rec_start: "Record", rec_stop: "Stop", rec_saving: "Saving…", rec_saved: "Saved", rec_err: "Saving failed. Try again.", rec_mic: "Allow the microphone to record.", rec_none: "Not recorded yet", rec_off: "Recording isn't set up yet on the server." },
+  fr: { rec_card: "Enregistrer les voix", rec_card_sub: "Ta voix remplace la voix d'ordinateur", rec_t: "Voix kriolu", rec_count: "{n} sur {t} enregistrés", rec_tip: "Mets-toi au calme. Appuie sur le micro, dis la phrase, appuie encore. Tu peux refaire un mot quand tu veux.", rec_start: "Enregistrer", rec_stop: "Arrêter", rec_saving: "Envoi…", rec_saved: "Enregistré", rec_err: "L'envoi a échoué. Réessaie.", rec_mic: "Autorise le micro pour enregistrer.", rec_none: "Pas encore enregistré", rec_off: "L'enregistrement n'est pas encore activé sur le serveur." },
+  pt: { rec_card: "Gravar as vozes", rec_card_sub: "A tua voz substitui a voz de computador", rec_t: "Vozes em Kriolu", rec_count: "{n} de {t} gravadas", rec_tip: "Procura um sítio calmo. Toca no microfone, diz a frase, toca outra vez. Podes refazer uma palavra quando quiseres.", rec_start: "Gravar", rec_stop: "Parar", rec_saving: "A enviar…", rec_saved: "Gravado", rec_err: "O envio falhou. Tenta outra vez.", rec_mic: "Permite o microfone para gravar.", rec_none: "Ainda não gravado", rec_off: "A gravação ainda não está ativada no servidor." },
+  nl: { rec_card: "Stemmen opnemen", rec_card_sub: "Jouw stem vervangt de computerstem", rec_t: "Kriolu-stemmen", rec_count: "{n} van {t} opgenomen", rec_tip: "Zoek een rustige plek. Tik op de microfoon, zeg de zin, tik nog eens. Je kunt een woord altijd opnieuw doen.", rec_start: "Opnemen", rec_stop: "Stoppen", rec_saving: "Opslaan…", rec_saved: "Opgeslagen", rec_err: "Opslaan mislukt. Probeer opnieuw.", rec_mic: "Sta de microfoon toe om op te nemen.", rec_none: "Nog niet opgenomen", rec_off: "Opnemen is nog niet ingesteld op de server." },
+  es: { rec_card: "Grabar las voces", rec_card_sub: "Tu voz sustituye a la voz de ordenador", rec_t: "Voces en kriolu", rec_count: "{n} de {t} grabadas", rec_tip: "Busca un sitio tranquilo. Toca el micrófono, di la frase, toca otra vez. Puedes rehacer una palabra cuando quieras.", rec_start: "Grabar", rec_stop: "Parar", rec_saving: "Enviando…", rec_saved: "Guardado", rec_err: "El envío falló. Inténtalo otra vez.", rec_mic: "Permite el micrófono para grabar.", rec_none: "Aún sin grabar", rec_off: "La grabación aún no está activada en el servidor." }
+};
+Object.keys(RT).forEach(l => Object.assign(T[l], RT[l]));
+ICONS.stop = '<rect x="6" y="6" width="12" height="12" rx="2"/>';
+
+let REC_URLS = {}, CAN_RECORD = false, REC_READY = true;
+const recUrl = e => e.formes[VARIANT].audio || REC_URLS[e.id] || null;
+async function loadRecordings() {
+  const sb = supa(); if (!sb) return;
+  const { data, error } = await sb.storage.from(VOICE_BUCKET).list(VARIANT, { limit: 1000 });
+  if (error || !data) { REC_READY = false; return; }
+  REC_READY = true;
+  const m = {};
+  data.forEach(o => { if (o.name && !o.name.startsWith(".")) m[o.name] = sb.storage.from(VOICE_BUCKET).getPublicUrl(VARIANT + "/" + o.name).data.publicUrl + "?v=" + encodeURIComponent(o.updated_at || o.created_at || ""); });
+  REC_URLS = m;
+  if (R.v === "voices") render();
+}
+async function checkRecorder() {
+  const sb = supa(); if (!sb || !CLOUD) return;
+  const { data, error } = await sb.rpc("can_record");
+  CAN_RECORD = !error && data === true;
+  if (error) REC_READY = false;
+  render();
+}
+
+// Recording: one entry at a time, auto-stop after 8 s, uploaded as soon as it stops
+let RC = { id: null, media: null, chunks: [], timer: 0, saving: {}, err: {} };
+function recMime() {
+  if (!window.MediaRecorder) return "";
+  return ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"].find(m => MediaRecorder.isTypeSupported(m)) || "";
+}
+async function recStart(id) {
+  if (RC.id) recStop();
+  let stream;
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { return toast(t("rec_mic")); }
+  const mime = recMime(), mr = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+  RC = Object.assign(RC, { id, media: mr, chunks: [] });
+  mr.ondataavailable = ev => { if (ev.data.size) RC.chunks.push(ev.data); };
+  mr.onstop = () => {
+    stream.getTracks().forEach(tk => tk.stop());
+    const blob = new Blob(RC.chunks, { type: (mr.mimeType || mime || "audio/webm").split(";")[0] });
+    RC.id = null; RC.media = null; clearTimeout(RC.timer);
+    recUpload(id, blob);
+  };
+  mr.start();
+  RC.timer = setTimeout(recStop, 8000);
+  render();
+}
+function recStop() { if (RC.media && RC.media.state !== "inactive") RC.media.stop(); }
+async function recUpload(id, blob) {
+  const sb = supa(); if (!sb) return;
+  RC.saving[id] = true; RC.err[id] = false;
+  REC_URLS[id] = URL.createObjectURL(blob); // play it back at once, even before the upload ends
+  render();
+  const { error } = await sb.storage.from(VOICE_BUCKET).upload(VARIANT + "/" + id, blob, { upsert: true, contentType: blob.type, cacheControl: "60" });
+  RC.saving[id] = false;
+  if (error) { RC.err[id] = true; toast(t("rec_err")); } else { toast(t("rec_saved")); loadRecordings(); }
+  render();
+}
+function recPlay(id) {
+  const u = REC_URLS[id]; if (!u) return;
+  if (voiceAudio) voiceAudio.pause();
+  voiceAudio = new Audio(u); voiceAudio.play().catch(() => {});
+}
+function voicesView() {
+  const all = LESSONS.flatMap(l => l.entrees), n = all.filter(e => REC_URLS[e.id]).length;
+  const row = e => {
+    const id = e.id, on = RC.id === id, has = !!REC_URLS[id];
+    const state = RC.saving[id] ? t("rec_saving") : RC.err[id] ? t("rec_err") : has ? t("rec_saved") : t("rec_none");
+    return `<div class="phrase"><div class="grow"><div class="kr">${esc(kr(e))}</div><div class="tr">${esc(tr(e))} · <span class="${has && !RC.err[id] ? "" : "muted"}">${state}</span></div></div>
+      ${has ? `<button class="iconbtn say" data-recplay="${esc(id)}" aria-label="${t("listen")} : ${esc(kr(e))}">${ic("speaker", 22)}</button>` : ""}
+      <button class="mic small-mic ${on ? "on" : ""}" data-rec="${esc(id)}" aria-label="${on ? t("rec_stop") : t("rec_start")} : ${esc(kr(e))}">${ic(on ? "stop" : "mic", 22)}</button></div>`;
+  };
+  return `<div class="screen">${header(t("rec_t"), "profile")}
+    <div class="card stack"><b>${t("rec_count", { n, t: all.length })}</b><div class="progress"><i style="width:${100 * n / all.length}%"></i></div><p class="small muted">${t("rec_tip")}</p>
+    ${REC_READY ? "" : `<p class="small" role="alert">${t("rec_off")}</p>`}</div>
+    ${LESSONS.map((l, i) => `<h3>${t("lesson_n", { n: i + 1 })} · ${esc(titleOf(i))}</h3><div class="stack">${l.entrees.map(row).join("")}</div>`).join("")}
+  </div>`;
 }
 
 
@@ -1978,5 +2076,6 @@ document.addEventListener("click", ev => {
 // Open a bare #token view on load (home, lessons, practice, vocab, profile, soutenir, culture, progress, admin)
 (function () { const h = location.hash.slice(1); if (S.onboarded && ["home", "lessons", "practice", "vocab", "profile", "soutenir", "culture", "progress", "admin", "course", "board"].includes(h)) R = { v: h }; })();
 render();
+loadRecordings();
 </script>
 </body></html>
