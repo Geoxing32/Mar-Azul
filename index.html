@@ -101,6 +101,18 @@ p { margin: 0; }
 .phrase { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; }
 .phrase .kr { font-weight: 800; color: var(--navy); font-size: 1.05rem; }
 .phrase .tr { color: var(--muted); font-size: .9rem; }
+.say { color: var(--ocean); flex: none; }
+.say:active { transform: scale(.94); }
+.say-card { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+.kr.big { font-family: var(--display); font-weight: 800; color: var(--navy); font-size: 1.5rem; }
+.mic-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.mic { width: 96px; height: 96px; border-radius: 50%; border: 0; background: var(--ocean); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 5px 0 var(--navy); transition: transform 140ms var(--ease-out), box-shadow 140ms var(--ease-out); }
+.mic:active { transform: translateY(2px) scale(.97); box-shadow: 0 3px 0 var(--navy); }
+.mic.on { background: var(--bad); box-shadow: 0 5px 0 #8F2A23; animation: micpulse 1.2s ease-in-out infinite; }
+.mic[disabled] { background: #B9C3D1; box-shadow: 0 5px 0 #9AA6B6; }
+@keyframes micpulse { 50% { box-shadow: 0 5px 0 #8F2A23, 0 0 0 12px rgba(217,72,62,.18); } }
+@media (prefers-reduced-motion: reduce) { .mic.on { animation: none; } }
+.mic-status { text-align: center; min-height: 2.6em; font-weight: 700; }
 .phrase .note { font-size: .8rem; color: var(--ocean); font-weight: 700; }
 
 /* Exercise */
@@ -785,8 +797,7 @@ function lessonView() {
 function phraseRow(e) {
   const f = e.formes[VARIANT];
   const alts = (f.variantes_acceptees || []).length ? ` <span class="small muted">(${esc(f.variantes_acceptees.join(", "))})</span>` : "";
-  const audio = f.audio ? `<button class="iconbtn" data-audio="${esc(f.audio)}" aria-label="${t("listen")}">▶</button>` : "";
-  return `<div class="phrase">${audio}<div class="grow"><div class="kr">${esc(f.texte)}${alts}</div><div class="tr">${esc(tr(e))}</div></div></div>`;
+  return `<div class="phrase">${sayBtn(e)}<div class="grow"><div class="kr">${esc(f.texte)}${alts}</div><div class="tr">${esc(tr(e))}</div></div></div>`;
 }
 
 // ---- Exercises ----
@@ -795,7 +806,8 @@ function buildSession(entries, lessonIdx) {
   const pool = shuffle(entries).slice(0, 8), qs = [];
   pool.forEach((e, k) => {
     const words = kr(e).split(/\s+/).length;
-    let type = ["tr", "kr", "type", "tr", "kr", "order", "type", "kr"][k % 8];
+    let type = ["tr", "kr", "type", "say", "kr", "order", "type", "say"][k % 8];
+    if (type === "say" && !speakingOn()) type = k % 8 === 3 ? "tr" : "kr";
     if (type === "order" && words < 3) type = "kr";
     if (type === "type" && (words > 4 || kr(e).includes("/"))) type = "tr";
     qs.push({ type, e });
@@ -812,14 +824,15 @@ function distractors(e, f) {
 }
 function exView() {
   const q = X.qs[X.i], pct = 100 * X.i / X.qs.length;
+  if (q.type === "say" && !speakingOn()) q.type = "kr";
   if (!q.opts && (q.type === "tr" || q.type === "kr")) { const f = q.type === "tr" ? tr : kr; q.opts = shuffle([f(q.e), ...distractors(q.e, f)]); }
   if (q.type === "order" && !q.chips) q.chips = shuffle(kr(q.e).split(/\s+/).map((w, i) => ({ w, i })));
   if (q.type === "match" && !q.left) { q.left = shuffle(q.pairs.map(p => p.id)); q.right = shuffle(q.pairs.map(p => p.id)); }
   let body = "";
-  const title = { tr: t("q_tr"), kr: t("q_kr"), type: t("q_type"), order: t("q_order"), match: t("q_match") }[q.type];
+  const title = { tr: t("q_tr"), kr: t("q_kr"), type: t("q_type"), order: t("q_order"), match: t("q_match"), say: t("say_q") }[q.type];
   if (q.type === "tr" || q.type === "kr") {
     const answer = q.type === "tr" ? tr(q.e) : kr(q.e);
-    body = `<div class="mascot-row">${img("kuriousu", 76)}<div class="bubble grow ${q.type === "tr" ? "prompt-kr" : "prompt-tr"}">${esc(q.type === "tr" ? kr(q.e) : tr(q.e))}</div></div>
+    body = `<div class="mascot-row">${img("kuriousu", 76)}<div class="bubble grow ${q.type === "tr" ? "prompt-kr" : "prompt-tr"}">${esc(q.type === "tr" ? kr(q.e) : tr(q.e))}${q.type === "tr" ? " " + sayBtn(q.e) : ""}</div></div>
       <div class="stack">${q.opts.map((o, k) => {
         let cls = ""; if (X.answered) { if (o === answer) cls = "right"; else if (k === X.sel) cls = "wrong"; } else if (k === X.sel) cls = "sel";
         return `<button class="choice ${cls}" data-opt="${k}" ${X.answered ? "disabled" : ""}>${esc(o)}</button>`; }).join("")}</div>`;
@@ -832,6 +845,8 @@ function exView() {
     body = `<div class="mascot-row">${img("pensativu", 76)}<div class="bubble grow prompt-tr">${esc(tr(q.e))}</div></div>
       <div class="slot" aria-live="polite">${X.built.map((ci, k) => `<button class="chip active" data-unbuild="${k}" ${X.answered ? "disabled" : ""}>${esc(q.chips[ci].w)}</button>`).join("")}</div>
       <div class="chips">${q.chips.map((c, k) => `<button class="chip ${X.built.includes(k) ? "used" : ""}" data-build="${k}" ${X.answered ? "disabled" : ""}>${esc(c.w)}</button>`).join("")}</div>`;
+  } else if (q.type === "say") {
+    body = speakBody(q);
   } else if (q.type === "match") {
     const byId = id => q.pairs.find(p => p.id === id);
     body = `<div class="mascot-row">${img("animadu", 76)}<div class="bubble grow">${t("q_match")}</div></div>
@@ -846,14 +861,15 @@ function exView() {
   return `<div class="screen no-nav">
     <div class="ex-top"><button class="iconbtn" data-quit aria-label="${t("quit")}">${ic("close", 26)}</button><div class="progress grow"><i style="width:${pct}%"></i></div></div>
     <h2>${title}</h2>${body}
-    ${!X.answered && q.type !== "match" ? `<div class="footer-bar"><button class="btn" data-check ${canCheck ? "" : "disabled"}>${t("check")}</button></div>` : ""}
+    ${!X.answered && q.type !== "match" && q.type !== "say" ? `<div class="footer-bar"><button class="btn" data-check ${canCheck ? "" : "disabled"}>${t("check")}</button></div>` : ""}
   </div>${X.answered ? feedbackBar() : ""}`;
 }
 function feedbackBar() {
   const q = X.qs[X.i], ok = X.lastOk;
   const ans = q.type === "match" ? "" : q.type === "tr" ? tr(q.e) : kr(q.e);
+  const listen = q.type !== "match" ? sayBtn(q.e) : "";
   return `<div class="feedback ${ok ? "ok" : "bad"} pop" role="status"><div class="inner">
-    <div class="row">${img(ok ? "contentu" : "motivadu", 56)}<div class="grow"><div class="title">${ok ? t("correct") : t("wrong")}</div>${!ok && ans ? `<div style="font-weight:800">${esc(ans)}</div>` : ""}</div></div>
+    <div class="row">${img(ok ? "contentu" : "motivadu", 56)}<div class="grow"><div class="title">${ok ? t("correct") : t("wrong")}</div>${!ok && ans ? `<div style="font-weight:800">${esc(ans)}</div>` : ""}</div>${listen}</div>
     <button class="btn ${ok ? "ok" : "bad"}" data-next>${t("next")}</button></div></div>`;
 }
 function checkAnswer() {
@@ -866,7 +882,7 @@ function checkAnswer() {
 }
 function finishQ(ok) { sfx(ok ? "right" : "wrong"); X.answered = true; X.lastOk = ok; if (ok) X.right++; S.right += ok ? 1 : 0; S.total += 1; save(); render(); }
 function nextQ() {
-  X.i++; X.answered = false; X.sel = null; X.built = []; X.typed = ""; X.matched = []; X.pick = null; X.misses = 0;
+  stopListening(); X.i++; X.answered = false; X.tries = 0; X.heard = null; X.listening = false; X.sel = null; X.built = []; X.typed = ""; X.matched = []; X.pick = null; X.misses = 0;
   if (X.i >= X.qs.length) completeSession(); else render();
 }
 function completeSession() {
@@ -935,6 +951,7 @@ function profileView() {
       <label class="field-label" for="setlang">${t("set_lang")}</label>
       <select id="setlang" class="answer-input" style="font-size:1rem">${Object.entries(LANGS).map(([k, n]) => `<option value="${k}" ${k === L ? "selected" : ""}>${n}</option>`).join("")}</select>
       <div class="row"><span class="field-label grow">${t("set_sound")}</span>${soundBtn()}</div>
+      ${SR ? `<div class="row"><span class="field-label grow">${t("voice_t")}</span><button class="pill" data-voice-toggle aria-pressed="${S.voice !== false}">${S.voice !== false ? t("voice_on") : t("voice_off")}</button></div>` : ""}
       <div class="field-label">${t("set_var")}</div><p class="muted">Santiago · Sotavento (Santiago, Brava, Fogo, Maio)</p>
     </div>
     <button class="card row" data-go="progress" style="text-align:left;width:100%"><span class="grow"><b>${t("see_progress")}</b></span>${ic("arrow")}</button>
@@ -1022,11 +1039,15 @@ function bind() {
     if (d.tab) { lessonTab = d.tab; return render(); }
     if (d.start !== undefined) { const i = Number(d.start); buildSession(LESSONS[i].entrees, i); return go("ex"); }
     if ("review" in d) { const ents = LESSONS.filter(l => S.done[l.id]).flatMap(l => l.entrees); buildSession(ents, null); return go("ex"); }
-    if ("quit" in d) return go(X && X.lessonIdx !== null ? "lesson" : "practice", X && X.lessonIdx !== null ? { i: X.lessonIdx } : {});
+    if ("quit" in d) return stopListening(), go(X && X.lessonIdx !== null ? "lesson" : "practice", X && X.lessonIdx !== null ? { i: X.lessonIdx } : {});
     if (d.opt !== undefined) { X.sel = Number(d.opt); return render(); }
     if (d.build !== undefined) { X.built.push(Number(d.build)); return render(); }
     if (d.unbuild !== undefined) { X.built.splice(Number(d.unbuild), 1); return render(); }
     if (d.ml || d.mr) return pickMatch(d.ml ? "l" : "r", d.ml || d.mr);
+    if (d.say) return sayEntry(entryById(d.say));
+    if ("mic" in d) return X.listening ? stopListening() : startListening();
+    if ("skipSay" in d) return skipSpeak();
+    if ("voiceToggle" in d) { S.voice = S.voice === false; save(); return render(); }
     if ("check" in d) return checkAnswer();
     if ("next" in d) return nextQ();
     if (d.vf !== undefined) { vf = d.vf === "all" ? "all" : Number(d.vf); return render(); }
@@ -1204,6 +1225,124 @@ setInterval(() => {
     if ((prev < .55 && p >= .55) || (prev < .9 && p >= .9)) sfx("splash");
   });
 }, 100);
+
+
+// ---- Voice: listen to Kriolu (recordings first, browser voice as a stand-in) and speak it (speech recognition) ----
+// Recordings: put audio/santiago/<id>.mp3 next to the site; build.py fills formes.<variant>.audio automatically.
+// Speech recognition: the browser's own (Web Speech API). Free, no key, no account. There is no Kriolu model,
+// so we listen with Portuguese and compare sounds, with tolerance.
+const VT = {
+  en: { say_q: "Say it in Kriolu", say_hint: "Read it out loud:", mic_tap: "Tap and speak", mic_on: "Listening…", heard: "I heard: “{s}”", heard_none: "I didn't hear anything. Try again.", try_again: "Almost! Try once more.", skip_say: "I can't speak now", mic_denied: "The microphone is blocked. Speaking exercises are off for this session.", synth_note: "Computer voice for now: real Kriolu recordings are coming.", voice_t: "Speaking exercises", voice_on: "On", voice_off: "Off" },
+  fr: { say_q: "Dis-le en kriolu", say_hint: "Lis à voix haute :", mic_tap: "Appuie et parle", mic_on: "J'écoute…", heard: "J'ai entendu : « {s} »", heard_none: "Je n'ai rien entendu. Réessaie.", try_again: "Presque ! Encore une fois.", skip_say: "Je ne peux pas parler maintenant", mic_denied: "Le micro est bloqué. Les exercices à l'oral sont coupés pour cette séance.", synth_note: "Voix d'ordinateur pour l'instant : les vrais enregistrements en kriolu arrivent.", voice_t: "Exercices à l'oral", voice_on: "Activés", voice_off: "Coupés" },
+  pt: { say_q: "Diz em Kriolu", say_hint: "Lê em voz alta:", mic_tap: "Toca e fala", mic_on: "A ouvir…", heard: "Ouvi: «{s}»", heard_none: "Não ouvi nada. Tenta outra vez.", try_again: "Quase! Mais uma vez.", skip_say: "Agora não posso falar", mic_denied: "O microfone está bloqueado. Os exercícios orais estão desligados nesta sessão.", synth_note: "Voz de computador por agora: as gravações reais em Kriolu estão a chegar.", voice_t: "Exercícios orais", voice_on: "Ligados", voice_off: "Desligados" },
+  nl: { say_q: "Zeg het in het Kriolu", say_hint: "Lees hardop:", mic_tap: "Tik en spreek", mic_on: "Ik luister…", heard: "Ik hoorde: “{s}”", heard_none: "Ik hoorde niets. Probeer opnieuw.", try_again: "Bijna! Nog een keer.", skip_say: "Ik kan nu niet spreken", mic_denied: "De microfoon is geblokkeerd. Spreekoefeningen staan uit voor deze sessie.", synth_note: "Computerstem voorlopig: echte Kriolu-opnames komen eraan.", voice_t: "Spreekoefeningen", voice_on: "Aan", voice_off: "Uit" },
+  es: { say_q: "Dilo en kriolu", say_hint: "Léelo en voz alta:", mic_tap: "Toca y habla", mic_on: "Escuchando…", heard: "He oído: «{s}»", heard_none: "No he oído nada. Inténtalo otra vez.", try_again: "¡Casi! Una vez más.", skip_say: "Ahora no puedo hablar", mic_denied: "El micrófono está bloqueado. Los ejercicios orales están desactivados en esta sesión.", synth_note: "Voz de ordenador por ahora: las grabaciones reales en kriolu están llegando.", voice_t: "Ejercicios orales", voice_on: "Activados", voice_off: "Desactivados" }
+};
+Object.keys(VT).forEach(l => Object.assign(T[l], VT[l]));
+ICONS.speaker = '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/><path d="M19 6a8.5 8.5 0 0 1 0 12"/>';
+ICONS.mic = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>';
+
+const entryById = id => LESSONS.flatMap(l => l.entrees).find(e => e.id === id);
+const sayBtn = (e, cls = "") => `<button class="iconbtn say ${cls}" data-say="${esc(e.id)}" aria-label="${t("listen")} : ${esc(kr(e))}">${ic("speaker", 22)}</button>`;
+
+// ---- Listening ----
+let voiceAudio = null, ptVoice;
+function pickVoice() {
+  if (ptVoice !== undefined || !("speechSynthesis" in window)) return ptVoice;
+  const vs = speechSynthesis.getVoices(); if (!vs.length) return null;
+  ptVoice = vs.find(v => /^pt[-_]PT/i.test(v.lang)) || vs.find(v => /^pt/i.test(v.lang)) || null;
+  return ptVoice;
+}
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => { ptVoice = undefined; pickVoice(); };
+// ALUPEC -> Portuguese spelling, so a Portuguese voice reads it closer to Kriolu
+function forPtVoice(s) {
+  return s.split("/")[0]
+    .replace(/tx/gi, "tch").replace(/k(?=[eiéí])/gi, "qu").replace(/k/gi, "c")
+    .replace(/([aeiouáéíóú])s(?=[aeiouáéíóú])/gi, "$1ss");
+}
+function hasRecording(e) { return !!e.formes[VARIANT].audio; }
+function sayEntry(e) {
+  if (!e) return;
+  if (voiceAudio) { voiceAudio.pause(); voiceAudio = null; }
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  const f = e.formes[VARIANT];
+  if (f.audio) { voiceAudio = new Audio(f.audio); voiceAudio.play().catch(() => synthSay(f.texte)); return; }
+  synthSay(f.texte);
+}
+let synthNoted = false;
+function synthSay(text) {
+  if (!("speechSynthesis" in window)) return;
+  const u = new SpeechSynthesisUtterance(forPtVoice(text));
+  const v = pickVoice(); if (v) u.voice = v;
+  u.lang = v ? v.lang : "pt-PT"; u.rate = 0.82;
+  speechSynthesis.speak(u);
+  if (!synthNoted) { synthNoted = true; toast(t("synth_note")); }
+}
+
+// ---- Speaking ----
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let micBlocked = false;
+const speakingOn = () => !!SR && !micBlocked && S.voice !== false;
+// Sound key: spellings of Kriolu and Portuguese differ, the sounds much less
+function soundKey(s) {
+  s = s.toLowerCase().replace(/ç/g, "s");
+  s = norm(s)
+    .replace(/ch/g, "x").replace(/lh/g, "li").replace(/nh/g, "ny").replace(/tx/g, "x").replace(/dj/g, "j")
+    .replace(/qu(?=[ei])/g, "k").replace(/gu(?=[ei])/g, "g").replace(/c(?=[ei])/g, "s").replace(/c/g, "k").replace(/q/g, "k")
+    .replace(/g(?=[ei])/g, "j").replace(/h/g, "").replace(/y/g, "i").replace(/w/g, "u").replace(/z/g, "s")
+    .replace(/m(?=\s|$|[^aeiou])/g, "n").replace(/o/g, "u").replace(/e/g, "i")
+    .replace(/(.)\1+/g, "$1").replace(/\s+/g, "");
+  return s;
+}
+function lev(a, b) {
+  const d = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) { let p = d[0]; d[0] = i; for (let j = 1; j <= b.length; j++) { const q = d[j]; d[j] = Math.min(d[j] + 1, d[j - 1] + 1, p + (a[i - 1] === b[j - 1] ? 0 : 1)); p = q; } }
+  return d[b.length];
+}
+function saidRight(e, heardList) {
+  const targets = acceptedAnswers(e).map(soundKey);
+  return heardList.some(h => { const k = soundKey(h); return k && targets.some(tg => 1 - lev(k, tg) / Math.max(k.length, tg.length) >= 0.72); });
+}
+let rec = null;
+function startListening() {
+  if (!SR || rec) return;
+  const q = X.qs[X.i];
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  rec = new SR(); rec.lang = "pt-PT"; rec.interimResults = false; rec.maxAlternatives = 5; rec.continuous = false;
+  X.listening = true; X.heard = null; render();
+  let got = false;
+  rec.onresult = ev => {
+    got = true; X.listening = false;
+    const alts = [...ev.results[0]].map(a => a.transcript);
+    X.heard = alts[0] || "";
+    if (saidRight(q.e, alts)) return finishQ(true);
+    X.tries = (X.tries || 0) + 1;
+    if (X.tries >= 3) return finishQ(false);
+    sfx("wrong"); render();
+  };
+  rec.onerror = ev => {
+    if (ev.error === "not-allowed" || ev.error === "service-not-allowed") { micBlocked = true; toast(t("mic_denied")); }
+  };
+  rec.onend = () => {
+    rec = null; X.listening = false;
+    if (micBlocked) return skipSpeak();
+    if (!got && !X.answered) { X.heard = ""; render(); }
+  };
+  try { rec.start(); } catch (e) { rec = null; X.listening = false; render(); }
+}
+function stopListening() { if (rec) try { rec.stop(); } catch (e) {} }
+// Skipping a speaking exercise counts neither right nor wrong
+function skipSpeak() { stopListening(); X.qs.splice(X.i, 1); X.answered = false; X.tries = 0; X.heard = null; X.listening = false; if (X.i >= X.qs.length) completeSession(); else render(); }
+function speakBody(q) {
+  const status = X.listening ? t("mic_on")
+    : X.heard === "" ? t("heard_none")
+    : X.heard ? `${t("heard", { s: esc(X.heard) })}<br>${X.answered ? "" : t("try_again")}` : t("mic_tap");
+  return `<div class="mascot-row">${img("kuriousu", 76)}<div class="bubble grow prompt-tr">${esc(tr(q.e))}</div></div>
+    <div class="card say-card"><div class="small muted">${t("say_hint")}</div><div class="row" style="justify-content:center;gap:4px"><span class="kr big">${esc(kr(q.e))}</span>${sayBtn(q.e)}</div></div>
+    <div class="mic-wrap"><button class="mic ${X.listening ? "on" : ""}" data-mic aria-label="${t("mic_tap")}" ${X.answered ? "disabled" : ""}>${ic("mic", 40)}</button>
+    <p class="small mic-status" role="status" aria-live="polite">${status}</p></div>
+    ${X.answered ? "" : `<button class="btn light" data-skip-say>${t("skip_say")}</button>`}`;
+}
 
 
 // Open a bare #token view on load (home, lessons, practice, vocab, profile, soutenir, culture, progress, admin)
