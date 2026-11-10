@@ -288,6 +288,8 @@ const SUPABASE_URL = "https://pftkobftshnfjubquvrg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_fSSpBi3LRjrAMHPofNgApw_jSX4Qb3N";
 // Dons en pause (demande de Geovany, 2026-10-23) : passer à true pour réafficher la page « Soutenir ».
 const DONATIONS_ON = false;
+// Voice (listen buttons, speaking exercise, voice recording page). Paused 2026-11-10 at Geovany's request: set to true to bring it back.
+const VOICE_ON = false;
 // Stripe Payment Links (créés dans le tableau de bord Stripe). Laisser vide tant que Stripe n'est pas configuré.
 const STRIPE_LINKS = { "2": "https://donate.stripe.com/fZu5kFelWap81ph8CE5c400", "5": "https://donate.stripe.com/9B6cN791C7cWfg72eg5c401", "10": "https://donate.stripe.com/eVq9AVelWeFofg7g565c402", "libre": "https://donate.stripe.com/14A5kF4Lmap82tl5qs5c403" };
 
@@ -727,7 +729,7 @@ function render() {
     case "course": html = courseView(); break;
     case "board": html = boardView(); break;
     case "admin": html = IS_ADMIN ? adminView() : profileView(); break;
-    case "voices": html = CAN_RECORD ? voicesView() : profileView(); break;
+    case "voices": html = CAN_RECORD && VOICE_ON ? voicesView() : profileView(); break;
     case "soutenir": html = DONATIONS_ON ? supportView() : homeView(); break;
     default: html = homeView();
   }
@@ -1010,12 +1012,12 @@ function profileView() {
       <label class="field-label" for="setlang">${t("set_lang")}</label>
       <select id="setlang" class="answer-input" style="font-size:1rem">${Object.entries(LANGS).map(([k, n]) => `<option value="${k}" ${k === L ? "selected" : ""}>${n}</option>`).join("")}</select>
       <div class="row"><span class="field-label grow">${t("set_sound")}</span>${soundBtn()}</div>
-      ${SR ? `<div class="row"><span class="field-label grow">${t("voice_t")}</span><button class="pill" data-voice-toggle aria-pressed="${S.voice !== false}">${S.voice !== false ? t("voice_on") : t("voice_off")}</button></div>` : ""}
+      ${SR && VOICE_ON ? `<div class="row"><span class="field-label grow">${t("voice_t")}</span><button class="pill" data-voice-toggle aria-pressed="${S.voice !== false}">${S.voice !== false ? t("voice_on") : t("voice_off")}</button></div>` : ""}
       <div class="row"><span class="grow"><span class="field-label">${t("set_course")}</span><br><span class="muted">${isKea() ? "Kriolu" : t("course_x", { lang: cap(lname(C())) })}</span></span><button class="btn light" style="width:auto;padding:10px 16px" data-go="course">${t("change_course")}</button></div>
       <div class="field-label">${t("set_var")}</div><p class="muted">Santiago · Sotavento (Santiago, Brava, Fogo, Maio)</p>
     </div>
     <button class="card row" data-go="progress" style="text-align:left;width:100%"><span class="grow"><b>${t("see_progress")}</b></span>${ic("arrow")}</button>
-    ${CAN_RECORD ? `<button class="card row" data-go="voices" style="text-align:left;width:100%"><span class="grow"><b>${t("rec_card")}</b><br><span class="small muted">${t("rec_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
+    ${CAN_RECORD && VOICE_ON ? `<button class="card row" data-go="voices" style="text-align:left;width:100%"><span class="grow"><b>${t("rec_card")}</b><br><span class="small muted">${t("rec_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${IS_ADMIN ? `<button class="card row" data-admin style="text-align:left;width:100%"><span class="grow"><b>${t("adm_card")}</b><br><span class="small muted">${t("adm_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${DONATIONS_ON ? `<button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>` : ""}
     <div class="card stack"><h3>${t("privacy")}</h3><p class="small muted">${t("privacy_p")}</p></div>
@@ -1319,7 +1321,7 @@ ICONS.speaker = '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0
 ICONS.mic = '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/>';
 
 const entryById = id => LESSONS.flatMap(l => l.entrees).find(e => e.id === id);
-const sayBtn = (e, cls = "") => `<button class="iconbtn say ${cls}" data-say="${esc(e.id)}" aria-label="${t("listen")} : ${esc(learn(e))}">${ic("speaker", 22)}</button>`;
+const sayBtn = (e, cls = "") => !VOICE_ON ? "" : `<button class="iconbtn say ${cls}" data-say="${esc(e.id)}" aria-label="${t("listen")} : ${esc(learn(e))}">${ic("speaker", 22)}</button>`;
 
 // ---- Listening ----
 // Locale used to read and to listen: Kriolu goes through Portuguese (closest voice and recogniser available)
@@ -1363,7 +1365,7 @@ function synthSay(text, loc) {
 // ---- Speaking ----
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let micBlocked = false;
-const speakingOn = () => !!SR && !micBlocked && S.voice !== false;
+const speakingOn = () => VOICE_ON && !!SR && !micBlocked && S.voice !== false;
 // Sound key: spellings of Kriolu and Portuguese differ, the sounds much less
 function soundKey(s) {
   s = s.toLowerCase().replace(/ç/g, "s");
@@ -2076,6 +2078,6 @@ document.addEventListener("click", ev => {
 // Open a bare #token view on load (home, lessons, practice, vocab, profile, soutenir, culture, progress, admin)
 (function () { const h = location.hash.slice(1); if (S.onboarded && ["home", "lessons", "practice", "vocab", "profile", "soutenir", "culture", "progress", "admin", "course", "board"].includes(h)) R = { v: h }; })();
 render();
-loadRecordings();
+if (VOICE_ON) loadRecordings();
 </script>
 </body></html>
