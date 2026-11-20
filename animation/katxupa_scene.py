@@ -153,34 +153,54 @@ flo = bpy.data.objects.new("fireL", fl); sc.collection.objects.link(flo); flo.lo
 for f in range(1, 289, 6):
     fire.scale = (1, 1, 1 + 0.18 * math.sin(f * 0.9)); fire.keyframe_insert("scale", frame=f)
 
-# ---------- Djodje (little shark) ----------
-dj = bpy.data.objects.new("Djodje", None); sc.collection.objects.link(dj)
-def part(o): o.parent = dj; return o
-body = part(sphere((0, 0, 0), (0.75, 0.42, 0.42), m_ocean, 32))
-part(sphere((0.08, -0.08, -0.12), (0.62, 0.33, 0.3), m_cream, 32))
-part(cone((-0.05, 0, 0.42), 0.22, 0.0, 0.45, m_ocean, rot=(0, math.radians(-18), 0)))           # dorsal fin
-tail = part(cone((-0.88, 0, 0.12), 0.08, 0.28, 0.45, m_ocean, rot=(0, math.radians(70), 0)))
-part(cone((0.15, -0.38, -0.12), 0.14, 0.0, 0.35, m_ocean, rot=(math.radians(60), 0, 0)))       # side fins
-part(cone((0.15, 0.38, -0.12), 0.14, 0.0, 0.35, m_ocean, rot=(math.radians(-60), 0, 0)))
-for y in (-0.22, 0.22):
-    part(sphere((0.52, -0.33 if y < 0 else 0.33, 0.12), (0.09, 0.05, 0.11), m_white, 16))
-    part(sphere((0.56, -0.37 if y < 0 else 0.37, 0.12), (0.05, 0.03, 0.07), m_black, 12))
-part(sphere((0.68, -0.2, -0.06), (0.1, 0.12, 0.03), m_black, 12)).rotation_euler = (0, 0, 0.6)  # smile
-# basket in Djodje's fin
-bpy.ops.mesh.primitive_torus_add(major_radius=0.32, minor_radius=0.04, location=(0.25, -0.55, -0.2))
-handle = part(put(bpy.context.object, m_wood)); handle.rotation_euler = (math.radians(90), 0, 0)
-basket = part(cyl((0.25, -0.55, -0.48), 0.32, 0.32, m_wood))
-dj.rotation_euler = (0, 0, math.radians(-90 + 20))   # face camera-ish, swimming to +x
+# ---------- the shopper (a person) ----------
+m_skin = mat("skin", "#7B4A2E", 0.5)
+m_hair = mat("hair", "#1E1410", 0.7)
+m_shirt = mat("shirt", LIGHT, 0.6)
+m_skirt = mat("skirt", OCEAN, 0.6)
+m_shoe = mat("shoe", "#3A2A20", 0.5)
+m_scarf = mat("scarf", "#F6C431", 0.6)
+pp = bpy.data.objects.new("Shopper", None); sc.collection.objects.link(pp)
+def part(o, parent=None): o.parent = parent or pp; return o
+def pivot(name, loc, parent=None):
+    e = bpy.data.objects.new(name, None); sc.collection.objects.link(e); e.parent = parent or pp; e.location = loc; return e
+hipL, hipR = pivot("hipL", (-0.13, 0, 0.85)), pivot("hipR", (0.13, 0, 0.85))
+for h in (hipL, hipR):
+    part(cyl((0, 0, -0.42), 0.085, 0.8, m_skin), h)
+    part(sphere((0, -0.06, -0.82), (0.1, 0.16, 0.06), m_shoe, 12), h)
+part(cone((0, 0, 1.0), 0.36, 0.24, 0.5, m_skirt))                 # skirt
+part(sphere((0, 0, 1.45), (0.27, 0.2, 0.34), m_shirt))              # torso
+part(cyl((0, 0, 1.77), 0.07, 0.12, m_skin))                         # neck
+head = part(sphere((0, 0, 2.02), (0.21, 0.2, 0.24), m_skin))
+part(sphere((0, 0.04, 2.1), (0.23, 0.22, 0.2), m_scarf))            # head scarf
+part(sphere((0, 0.12, 2.25), (0.12, 0.12, 0.1), m_scarf, 12))
+for x in (-0.075, 0.075):
+    part(sphere((x, -0.19, 2.03), (0.03, 0.02, 0.035), m_black, 10))
+part(sphere((0, -0.2, 1.93), (0.06, 0.02, 0.015), mat("smile", "#5A2A1E", 0.4), 10))
+shL = pivot("shL", (-0.3, 0, 1.6)); shR = pivot("shR", (0.3, 0, 1.6))
+part(cyl((0, 0, -0.32), 0.065, 0.62, m_skin), shL); part(sphere((0, 0, -0.66), (0.08, 0.08, 0.08), m_skin, 12), shL)
+part(cyl((0, 0, -0.32), 0.065, 0.62, m_skin), shR); part(sphere((0, 0, -0.66), (0.08, 0.08, 0.08), m_skin, 12), shR)
+shR.rotation_euler = (math.radians(35), math.radians(-12), 0)      # right arm forward, holding the basket
+# basket hanging from the right hand
+bpy.ops.mesh.primitive_torus_add(major_radius=0.26, minor_radius=0.035, location=(0, 0, -0.85))
+handle = part(put(bpy.context.object, m_wood), shR); handle.rotation_euler = (math.radians(-35), math.radians(90), 0)
+basket = part(cyl((0, -0.32, -1.02), 0.3, 0.3, m_wood), shR); basket.rotation_euler = (math.radians(-35), 0, 0)
+pp.rotation_euler = (0, 0, math.radians(8))   # turned a bit toward the direction of walking (+x)
 
-# path: talhu -> merkadu -> kitchen, bobbing like in water
-STOPS = [(1, TALHU_X - 5.0), (40, TALHU_X + 2.7), (110, TALHU_X + 2.7), (150, MERK_X + 2.7), (215, MERK_X + 2.7), (250, KITCH_X - 1.9), (288, KITCH_X - 1.9)]
+# path: talhu -> merkadu -> kitchen, walking
+STOPS = [(1, TALHU_X - 5.0), (40, TALHU_X + 2.5), (110, TALHU_X + 2.5), (150, MERK_X + 2.5), (215, MERK_X + 2.5), (250, KITCH_X - 1.9), (288, KITCH_X - 1.9)]
 for f, x in STOPS:
-    dj.location = (x, -0.4, 1.55); dj.keyframe_insert("location", index=0, frame=f)
-for f in range(1, 289, 4):
-    dj.location.z = 1.55 + 0.12 * math.sin(f * 0.25); dj.keyframe_insert("location", index=2, frame=f)
-    dj.rotation_euler.x = 0.06 * math.sin(f * 0.25 + 1); dj.keyframe_insert("rotation_euler", index=0, frame=f)
-for f in range(1, 289, 3):
-    tail.rotation_euler = (math.radians(25) * math.sin(f * 0.8), math.radians(70), 0); tail.keyframe_insert("rotation_euler", frame=f)
+    pp.location = (x, -0.5, 0.0); pp.keyframe_insert("location", index=0, frame=f)
+WALK = [(1, 40), (110, 150), (215, 250)]
+def walking(f): return any(a <= f <= b for a, b in WALK)
+for f in range(1, 289, 2):
+    w_ = 1.0 if walking(f) else 0.0
+    sw = 0.45 * w_ * math.sin(f * 0.45)
+    hipL.rotation_euler = (sw, 0, 0); hipL.keyframe_insert("rotation_euler", frame=f)
+    hipR.rotation_euler = (-sw, 0, 0); hipR.keyframe_insert("rotation_euler", frame=f)
+    shL.rotation_euler = (-sw * 0.8, 0, 0); shL.keyframe_insert("rotation_euler", frame=f)
+    pp.location.z = w_ * 0.04 * abs(math.sin(f * 0.45)); pp.keyframe_insert("location", index=2, frame=f)
+    head.rotation_euler = (0, 0, 0.12 * math.sin(f * 0.08) * (1 - w_)); head.keyframe_insert("rotation_euler", frame=f)
 
 def basket_at(f):
     sc.frame_set(f); bpy.context.view_layer.update(); return basket.matrix_world.translation.copy() + Vector((0, 0, 0.25))
