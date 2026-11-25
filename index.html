@@ -543,7 +543,7 @@ function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e
 let CLOUD = null, ME = { name: "" }, cloudTimer = 0, CAN_CLOUD = false;
 const OUT_KEY = "marazul.signedout";
 const signedOut = () => { try { return localStorage.getItem(OUT_KEY) === "1"; } catch (e) { return false; } };
-function cloudPayload() { const { lang, variant, course, doneX, onboarded, xp, streak, lastDay, done, right, total, avatar, pseudo, board, badges, dayXp, dayDate, wk, bestCombo, perfects } = S; return { lang, variant, course, doneX, onboarded, xp, streak, lastDay, done, right, total, avatar, pseudo, board, badges, dayXp, dayDate, wk, bestCombo, perfects, updated: Date.now() }; }
+function cloudPayload() { const { lang, variant, course, doneX, onboarded, xp, streak, lastDay, done, right, total, avatar, pseudo, board, badges, dayXp, dayDate, wk, bestCombo, perfects, ch, refPaid, info, infoLater } = S; return { lang, variant, course, doneX, onboarded, xp, streak, lastDay, done, right, total, avatar, pseudo, board, badges, dayXp, dayDate, wk, bestCombo, perfects, ch, refPaid, info, infoLater, meta: deviceMeta(), updated: Date.now() }; }
 function cloudSave() {
   if (!CLOUD) return;
   clearTimeout(cloudTimer);
@@ -578,6 +578,7 @@ async function connectSupabase() {
   checkAdmin();
   checkRecorder();
   startPing();
+  refSync();
 }
 // Presence: while a signed-in learner has the app open, tell the server every minute (the admin sees who is online)
 let pingTimer = 0;
@@ -673,7 +674,7 @@ const today = () => new Date().toISOString().slice(0, 10);
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 const doneCount = () => LESSONS.filter(l => DONE()[l.id]).length;
 const nextLessonIdx = () => { const i = LESSONS.findIndex(l => !DONE()[l.id]); return i; };
-const unlocked = i => i === 0 || !!DONE()[LESSONS[i - 1].id];
+const unlocked = i => IS_ADMIN || i === 0 || !!DONE()[LESSONS[i - 1].id];
 const accuracy = () => S.total ? Math.round(100 * S.right / S.total) : 0;
 const streakNow = () => (S.lastDay && daysBetween(S.lastDay, today()) <= 1) ? S.streak : 0;
 function greeting() { const h = new Date().getHours(); const id = h < 12 ? "L01-01" : h < 19 ? "L01-02" : "L01-03"; return kr(LESSONS[0].entrees.find(e => e.id === id)); }
@@ -812,7 +813,10 @@ function homeView() {
     <div class="mascot-row">${img(away ? "orgulhosu" : "contentu", 72, MASCOT_NAME)}<div class="grow"><h1>${esc(greeting())}!</h1><p class="muted">${away ? t("away", { name: MASCOT_NAME }) : isKea() ? t("home_sub") : t("home_sub_x", { lang: lname(C()) })}</p></div></div>
     <div class="card stack"><div class="row"><div class="grow"><div class="eyebrow">${isKea() ? t("course") : t("course_x", { lang: cap(lname(C())) })}</div><h3>${t("lessons_of", { a: n, b: LESSONS.length })}</h3></div><button class="link small" data-go="course">${t("change_course")}</button>${img("map", 56)}</div><div class="progress" role="progressbar" aria-valuenow="${n}" aria-valuemin="0" aria-valuemax="${LESSONS.length}"><i style="width:${100 * n / LESSONS.length}%"></i></div></div>
     ${gameHomeCard()}
+    ${infoPromptCard()}
     ${lessonCard}
+    ${chHomeCard()}
+    ${inviteCard()}
     <div class="stats">
       <div class="stat"><b>${streakNow()}</b><span>${t("st_streak")}</span></div>
       <div class="stat"><b>${n}</b><span>${t("st_lessons")}</span></div>
@@ -828,6 +832,7 @@ function homeView() {
 function lessonsView() {
   const ni = nextLessonIdx();
   return `<div class="screen">${header(t("lessons_t"))}
+    ${IS_ADMIN ? `<p class="small muted">${t("adm_unlock")}</p>` : ""}
     <div class="path stagger">${LESSONS.map((l, i) => {
       const done = !!DONE()[l.id], open = unlocked(i);
       const cls = done ? "done" : !open ? "locked" : i === ni ? "current" : "";
@@ -944,7 +949,7 @@ function checkAnswer() {
   if (q.type === "order") ok = norm(X.built.map(k => q.chips[k].w).join(" ")) === norm(plain(learn(q.e)));
   finishQ(ok);
 }
-function finishQ(ok) { sfx(ok ? "right" : "wrong"); gameAnswer(ok); X.answered = true; X.lastOk = ok; if (ok) X.right++; S.right += ok ? 1 : 0; S.total += 1; save(); render(); }
+function finishQ(ok) { sfx(ok ? "right" : "wrong"); gameAnswer(ok); X.answered = true; X.lastOk = ok; if (ok) X.right++; S.right += ok ? 1 : 0; S.total += 1; chOnAnswer(ok); save(); render(); }
 function nextQ() {
   stopListening(); X.i++; X.answered = false; X.tries = 0; X.heard = null; X.listening = false; X.sel = null; X.built = []; X.typed = ""; X.matched = []; X.pick = null; X.misses = 0;
   if (X.i >= X.qs.length) completeSession(); else render();
@@ -955,6 +960,7 @@ function completeSession() {
   if (S.lastDay !== d) { S.streak = S.lastDay && daysBetween(S.lastDay, d) === 1 ? S.streak + 1 : 1; S.lastDay = d; }
   if (X.lessonIdx !== null) { const id = LESSONS[X.lessonIdx].id, D = DONE(), prev = D[id]; D[id] = { best: Math.max(pct, prev ? prev.best : 0) }; }
   const G = gameComplete(pct);
+  G.chal = chOnComplete(X.lessonIdx, G);
   save(); go("finish", { pct, xp: G.xp, lessonIdx: X.lessonIdx, G });
 }
 function finishView() {
@@ -1026,6 +1032,7 @@ function profileView() {
     ${CAN_RECORD && VOICE_ON ? `<button class="card row" data-go="voices" style="text-align:left;width:100%"><span class="grow"><b>${t("rec_card")}</b><br><span class="small muted">${t("rec_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${IS_ADMIN ? `<button class="card row" data-admin style="text-align:left;width:100%"><span class="grow"><b>${t("adm_card")}</b><br><span class="small muted">${t("adm_card_sub")}</span></span>${ic("arrow")}</button>` : ""}
     ${DONATIONS_ON ? `<button class="card row" data-go="soutenir" style="text-align:left;width:100%">${img("icon", 48)}<span class="grow"><b>${t("support_card")}</b></span>${ic("arrow")}</button>` : ""}
+    ${infoCard()}
     <div class="card stack"><h3>${t("privacy")}</h3><p class="small muted">${t("privacy_p")}</p></div>
     <div class="card stack">${resetAsk ? `<p>${t("reset_q")}</p><div class="row"><button class="btn bad" data-reset-yes>${t("reset_yes")}</button><button class="btn light" data-reset-no>${t("cancel")}</button></div>` : `<button class="btn light" data-reset>${t("reset")}</button>`}</div>
   </div>`;
@@ -1060,8 +1067,9 @@ function adminView() {
     <div class="card stack"><h3>${t("adm_per_lesson")}</h3>
       ${LESSONS.map((l, i) => `<div class="stack" style="gap:4px"><div class="row small"><span class="grow">${i + 1} · ${titleOf(i)}</span><b style="font-variant-numeric:tabular-nums">${n(per[l.id])}</b></div><div class="progress" style="height:8px"><i style="width:${100 * n(per[l.id]) / maxPer}%"></i></div></div>`).join("")}</div>
     ${langs.length ? `<div class="card stack"><h3>${t("adm_langs")}</h3>${langs.map(([k, v]) => `<div class="row small"><span class="grow">${esc(LANGS[k] || k)}</span><b>${n(v)}</b></div>`).join("")}</div>` : ""}
+    ${adminExtra(a)}
     <div class="card stack"><div class="row"><h3 class="grow">${t("adm_users")}</h3><span class="muted small">${users.length}</span></div>
-      ${users.length ? users.map(u => `<div style="border-top:1px solid var(--line);padding-top:10px"><b style="overflow-wrap:anywhere">${u.online ? dot : ""}${esc(u.email || "")}</b><div class="small muted">${t("adm_joined", { d: fmtDate(u.joined) })} · ${t("adm_seen", { d: fmtDate(u.last_seen) })}</div><div class="small">${t("adm_lessons_n", { n: n(u.lessons) })} · ${n(u.xp)} XP</div></div>`).join("") : `<p class="muted">${t("adm_none")}</p>`}</div>
+      ${users.length ? users.map(u => `<div style="border-top:1px solid var(--line);padding-top:10px"><b style="overflow-wrap:anywhere">${u.online ? dot : ""}${esc(u.email || "")}</b><div class="small muted">${t("adm_joined", { d: fmtDate(u.joined) })} · ${t("adm_seen", { d: fmtDate(u.last_seen) })}</div><div class="small">${t("adm_lessons_n", { n: n(u.lessons) })} · ${n(u.xp)} XP</div>${admUserExtra(u)}</div>`).join("") : `<p class="muted">${t("adm_none")}</p>`}</div>
     <p class="small muted">${t("adm_scope")}</p>
     <button class="btn light" data-adm-refresh>${t("adm_refresh")}</button>
   </div>`;
@@ -1688,6 +1696,7 @@ function finishExtras() {
       <div class="row"><span class="lvl ${G.levelUp ? "big" : ""}">${n}</span><div class="grow">${G.levelUp ? `<h3>${t("g_levelup", { n })}</h3><div class="small">${t("g_levelup_p", { r: esc(rankName(n)) })}</div>` : `<b>${t("g_level", { n })} · ${esc(rankName(n))}</b>`}<div class="progress" style="height:10px;margin-top:6px"><i class="grow-bar" style="width:${lvlPct(S.xp)}%"></i></div><div class="small muted" style="margin-top:4px">${t("g_to_next", { n: lvlStart(n + 1) - S.xp, l: n + 1 })}</div></div></div>
       <div class="row">${goalRing(44)}<div class="grow"><b>${t("g_goal")}</b><div class="small muted">${dayXp() >= GOAL ? t("g_goal_done") : `${Math.min(dayXp(), GOAL)} / ${GOAL} XP`}</div></div>${G.combo >= 3 ? `<span class="combo">${glyph("flame", 16)} ×${G.combo}</span>` : ""}</div>
     </div>
+    ${chFinish(G)}
     ${G.fresh.length ? `<div class="card stack" style="width:100%"><h3>${t(G.fresh.length > 1 ? "g_new_badges" : "g_new_badge")}</h3><div class="badge-grid">${G.fresh.map((id, k) => { const b = BADGES.find(x => x[0] === id); return `<div class="badge pop" style="animation-delay:${200 + k * 120}ms">${medal(b, true, 60)}<b class="small">${esc(badgeTxt(id)[0])}</b></div>`; }).join("")}</div></div>` : ""}
     ${CLOUD && S.board ? `<button class="btn light" data-go="board">${glyph("trophy", 20)} ${t("g_see_board")}</button>` : ""}`;
 }
@@ -1777,6 +1786,7 @@ async function joinBoard(v) {
 async function leaveBoard() { S.board = false; boardEdit = false; save(); await pushNow(); BOARD.week = BOARD.all = null; toast(t("g_left")); render(); }
 // Called from bind(): returns true when the click was handled here
 function gameClick(d) {
+  if (exClick(d)) return true;
   if (d.boardTab) { boardTab = d.boardTab; render(); if (!BOARD[boardTab]) boardLoad(boardTab); return true; }
   if ("boardRetry" in d) { boardLoad(boardTab); return true; }
   if ("pseudoEdit" in d) { boardEdit = true; pseudoErr = ""; render(); const p = $("#pseudo"); if (p) p.focus(); return true; }
@@ -1786,6 +1796,7 @@ function gameClick(d) {
 }
 let lastView = "";
 function gameAfterRender() {
+  exAfterRender();
   const pf = $("#pseudoform"); if (pf) pf.onsubmit = e => { e.preventDefault(); joinBoard($("#pseudo").value); };
   const entering = R.v !== lastView; lastView = R.v;
   if (entering && R.v === "board" && CLOUD && S.board) pushNow().then(() => boardLoad(boardTab, !!BOARD[boardTab]));
@@ -2059,6 +2070,279 @@ document.addEventListener("click", ev => {
   .av-sw:active,.av-pic:active{transform:scale(.94)}
   @media (max-width:380px){.av-top .avatar{width:104px;height:104px}}
   @media (prefers-reduced-motion:reduce){.av-sw,.av-pic{transition:none}.av-sw:active,.av-pic:active{transform:none}}`;
+  document.head.appendChild(st);
+})();
+
+
+// ---- Défis, parrainage, infos facultatives (nationalité, pays, ville) et appareil ----
+const EX_T = {
+  en: {
+    ch_t: "Challenges", ch_day: "Today's challenge", ch_week: "This week's challenges", ch_done: "Done", ch_toast: "Challenge complete! +{n} XP", ch_fin: "Challenges complete",
+    d_right: "Get {n} right answers today", d_lesson: "Finish a lesson today", d_combo: "Get a combo of {n}",
+    w_lessons: "Finish {n} lessons this week", w_days: "Practise on {n} days this week", w_perfect: "Finish a lesson with no mistakes", w_invite: "Invite a friend who signs up",
+    inv_t: "Invite your friends", inv_p: "Share your link. When a friend signs up and finishes their first lesson, you earn {n} XP. Your friend gets {m} XP to start.",
+    inv_share: "Share my link", inv_copied: "Link copied!", inv_stats: "{a} friends signed up · {b} learning", inv_login: "Sign in to get your invite link.", inv_link: "Your invite link",
+    inv_msg: "Learn Cape Verdean Kriolu with me on Mar Azul!", inv_welcome: "Welcome! Your friend gave you {n} XP", inv_reward: "Your friends started learning! +{n} XP",
+    info_t: "About you", info_p: "Optional. It helps us know where learners come from.", info_nat: "Nationality", info_country: "Country you live in", info_city: "City", info_none: "Not specified",
+    info_save: "Save", info_saved: "Thanks, saved!", info_prompt: "Tell us where you're from", info_prompt_p: "Nationality, country and city. Optional, 10 seconds.", info_later: "Later",
+    adm_unlock: "Admin: every lesson is open for you.", adm_time: "Time in the app", adm_hours_total: "Hours in total", adm_hours_7: "Hours this week", adm_min_avg: "Minutes per learner", adm_sessions: "Sessions",
+    adm_hours: "When people connect (your local time, last 30 days)", adm_nat: "Nationalities", adm_country: "Countries of residence", adm_city: "Cities", adm_device: "Devices", adm_tz: "Time zones",
+    adm_refs: "Invitations", adm_refs_n: "Friends invited", adm_refs_active: "Invited and learning", adm_u_time: "{m} min · {s} sessions · {d} days active", adm_u_inv: "invited {n}",
+    adm_no_info: "Nobody has filled this in yet.", dev_mobile: "Phone", dev_tablet: "Tablet", dev_desktop: "Computer",
+    priv_extra: "If you sign in, the team also sees how long you use the app, at what times, your type of device and time zone, how many friends you invited, and your nationality, country and city if you choose to give them.",
+  },
+  fr: {
+    ch_t: "Défis", ch_day: "Défi du jour", ch_week: "Défis de la semaine", ch_done: "Réussi", ch_toast: "Défi réussi ! +{n} XP", ch_fin: "Défis réussis",
+    d_right: "Fais {n} bonnes réponses aujourd'hui", d_lesson: "Termine une leçon aujourd'hui", d_combo: "Fais un combo de {n}",
+    w_lessons: "Termine {n} leçons cette semaine", w_days: "Joue {n} jours cette semaine", w_perfect: "Termine une leçon sans faute", w_invite: "Invite un ami qui s'inscrit",
+    inv_t: "Invite tes amis", inv_p: "Partage ton lien. Quand un ami s'inscrit et termine sa première leçon, tu gagnes {n} XP. Ton ami reçoit {m} XP pour commencer.",
+    inv_share: "Partager mon lien", inv_copied: "Lien copié !", inv_stats: "{a} amis inscrits · {b} en train d'apprendre", inv_login: "Connecte-toi pour obtenir ton lien d'invitation.", inv_link: "Ton lien d'invitation",
+    inv_msg: "Apprends le kriolu du Cap-Vert avec moi sur Mar Azul !", inv_welcome: "Bienvenue ! Ton ami t'offre {n} XP", inv_reward: "Tes amis ont commencé à apprendre ! +{n} XP",
+    info_t: "À propos de toi", info_p: "Facultatif. Ça nous aide à savoir d'où viennent les apprenants.", info_nat: "Nationalité", info_country: "Pays où tu vis", info_city: "Ville", info_none: "Non précisé",
+    info_save: "Enregistrer", info_saved: "Merci, c'est enregistré !", info_prompt: "Dis-nous d'où tu viens", info_prompt_p: "Nationalité, pays et ville. Facultatif, 10 secondes.", info_later: "Plus tard",
+    adm_unlock: "Admin : toutes les leçons sont ouvertes pour toi.", adm_time: "Temps passé dans l'appli", adm_hours_total: "Heures au total", adm_hours_7: "Heures cette semaine", adm_min_avg: "Minutes par apprenant", adm_sessions: "Sessions",
+    adm_hours: "Heures de connexion (ton heure locale, 30 derniers jours)", adm_nat: "Nationalités", adm_country: "Pays de résidence", adm_city: "Villes", adm_device: "Appareils", adm_tz: "Fuseaux horaires",
+    adm_refs: "Parrainage", adm_refs_n: "Amis invités", adm_refs_active: "Invités qui apprennent", adm_u_time: "{m} min · {s} sessions · {d} jours actifs", adm_u_inv: "{n} invités",
+    adm_no_info: "Personne ne l'a encore rempli.", dev_mobile: "Téléphone", dev_tablet: "Tablette", dev_desktop: "Ordinateur",
+    priv_extra: "Si tu te connectes, l'équipe voit aussi combien de temps tu utilises l'appli, à quelles heures, ton type d'appareil et ton fuseau horaire, combien d'amis tu as invités, et ta nationalité, ton pays et ta ville si tu choisis de les indiquer.",
+  },
+  pt: {
+    ch_t: "Desafios", ch_day: "Desafio do dia", ch_week: "Desafios da semana", ch_done: "Feito", ch_toast: "Desafio cumprido! +{n} XP", ch_fin: "Desafios cumpridos",
+    d_right: "Dá {n} respostas certas hoje", d_lesson: "Termina uma lição hoje", d_combo: "Faz um combo de {n}",
+    w_lessons: "Termina {n} lições esta semana", w_days: "Pratica em {n} dias esta semana", w_perfect: "Termina uma lição sem erros", w_invite: "Convida um amigo que se inscreva",
+    inv_t: "Convida os teus amigos", inv_p: "Partilha o teu link. Quando um amigo se inscreve e termina a primeira lição, ganhas {n} XP. O teu amigo recebe {m} XP para começar.",
+    inv_share: "Partilhar o meu link", inv_copied: "Link copiado!", inv_stats: "{a} amigos inscritos · {b} a aprender", inv_login: "Entra para obter o teu link de convite.", inv_link: "O teu link de convite",
+    inv_msg: "Aprende o Kriolu de Cabo Verde comigo no Mar Azul!", inv_welcome: "Bem-vindo! O teu amigo ofereceu-te {n} XP", inv_reward: "Os teus amigos começaram a aprender! +{n} XP",
+    info_t: "Sobre ti", info_p: "Opcional. Ajuda-nos a saber de onde vêm os alunos.", info_nat: "Nacionalidade", info_country: "País onde vives", info_city: "Cidade", info_none: "Não indicado",
+    info_save: "Guardar", info_saved: "Obrigado, está guardado!", info_prompt: "Diz-nos de onde és", info_prompt_p: "Nacionalidade, país e cidade. Opcional, 10 segundos.", info_later: "Mais tarde",
+    adm_unlock: "Admin: todas as lições estão abertas para ti.", adm_time: "Tempo na app", adm_hours_total: "Horas no total", adm_hours_7: "Horas esta semana", adm_min_avg: "Minutos por aluno", adm_sessions: "Sessões",
+    adm_hours: "Horas de ligação (a tua hora local, últimos 30 dias)", adm_nat: "Nacionalidades", adm_country: "Países de residência", adm_city: "Cidades", adm_device: "Aparelhos", adm_tz: "Fusos horários",
+    adm_refs: "Convites", adm_refs_n: "Amigos convidados", adm_refs_active: "Convidados a aprender", adm_u_time: "{m} min · {s} sessões · {d} dias ativos", adm_u_inv: "{n} convidados",
+    adm_no_info: "Ainda ninguém preencheu.", dev_mobile: "Telemóvel", dev_tablet: "Tablet", dev_desktop: "Computador",
+    priv_extra: "Se entrares, a equipa também vê quanto tempo usas a app, a que horas, o tipo de aparelho e o fuso horário, quantos amigos convidaste, e a tua nacionalidade, país e cidade se escolheres indicá-los.",
+  },
+  nl: {
+    ch_t: "Uitdagingen", ch_day: "Uitdaging van vandaag", ch_week: "Uitdagingen van de week", ch_done: "Gelukt", ch_toast: "Uitdaging gehaald! +{n} XP", ch_fin: "Uitdagingen gehaald",
+    d_right: "Geef vandaag {n} goede antwoorden", d_lesson: "Rond vandaag een les af", d_combo: "Haal een combo van {n}",
+    w_lessons: "Rond deze week {n} lessen af", w_days: "Oefen deze week op {n} dagen", w_perfect: "Rond een les foutloos af", w_invite: "Nodig een vriend uit die zich aanmeldt",
+    inv_t: "Nodig je vrienden uit", inv_p: "Deel je link. Als een vriend zich aanmeldt en zijn eerste les afrondt, verdien jij {n} XP. Je vriend krijgt {m} XP om te beginnen.",
+    inv_share: "Mijn link delen", inv_copied: "Link gekopieerd!", inv_stats: "{a} vrienden aangemeld · {b} leren mee", inv_login: "Log in om je uitnodigingslink te krijgen.", inv_link: "Jouw uitnodigingslink",
+    inv_msg: "Leer Kaapverdisch Kriolu met mij op Mar Azul!", inv_welcome: "Welkom! Je vriend geeft je {n} XP", inv_reward: "Je vrienden zijn begonnen met leren! +{n} XP",
+    info_t: "Over jou", info_p: "Niet verplicht. Zo weten we waar de leerlingen vandaan komen.", info_nat: "Nationaliteit", info_country: "Land waar je woont", info_city: "Stad", info_none: "Niet opgegeven",
+    info_save: "Opslaan", info_saved: "Bedankt, opgeslagen!", info_prompt: "Vertel ons waar je vandaan komt", info_prompt_p: "Nationaliteit, land en stad. Niet verplicht, 10 seconden.", info_later: "Later",
+    adm_unlock: "Beheer: alle lessen staan voor jou open.", adm_time: "Tijd in de app", adm_hours_total: "Uren in totaal", adm_hours_7: "Uren deze week", adm_min_avg: "Minuten per leerling", adm_sessions: "Sessies",
+    adm_hours: "Wanneer mensen inloggen (jouw lokale tijd, laatste 30 dagen)", adm_nat: "Nationaliteiten", adm_country: "Woonlanden", adm_city: "Steden", adm_device: "Apparaten", adm_tz: "Tijdzones",
+    adm_refs: "Uitnodigingen", adm_refs_n: "Vrienden uitgenodigd", adm_refs_active: "Uitgenodigd en lerend", adm_u_time: "{m} min · {s} sessies · {d} actieve dagen", adm_u_inv: "{n} uitgenodigd",
+    adm_no_info: "Nog niemand heeft dit ingevuld.", dev_mobile: "Telefoon", dev_tablet: "Tablet", dev_desktop: "Computer",
+    priv_extra: "Als je inlogt, ziet het team ook hoe lang je de app gebruikt, op welke tijden, je soort apparaat en tijdzone, hoeveel vrienden je uitnodigde, en je nationaliteit, land en stad als je die invult.",
+  },
+  es: {
+    ch_t: "Retos", ch_day: "Reto del día", ch_week: "Retos de la semana", ch_done: "Hecho", ch_toast: "¡Reto superado! +{n} XP", ch_fin: "Retos superados",
+    d_right: "Consigue {n} respuestas correctas hoy", d_lesson: "Termina una lección hoy", d_combo: "Haz un combo de {n}",
+    w_lessons: "Termina {n} lecciones esta semana", w_days: "Practica {n} días esta semana", w_perfect: "Termina una lección sin fallos", w_invite: "Invita a un amigo que se registre",
+    inv_t: "Invita a tus amigos", inv_p: "Comparte tu enlace. Cuando un amigo se registra y termina su primera lección, ganas {n} XP. Tu amigo recibe {m} XP para empezar.",
+    inv_share: "Compartir mi enlace", inv_copied: "¡Enlace copiado!", inv_stats: "{a} amigos registrados · {b} aprendiendo", inv_login: "Inicia sesión para obtener tu enlace de invitación.", inv_link: "Tu enlace de invitación",
+    inv_msg: "¡Aprende kriolu de Cabo Verde conmigo en Mar Azul!", inv_welcome: "¡Bienvenido! Tu amigo te regala {n} XP", inv_reward: "¡Tus amigos empezaron a aprender! +{n} XP",
+    info_t: "Sobre ti", info_p: "Opcional. Nos ayuda a saber de dónde vienen los alumnos.", info_nat: "Nacionalidad", info_country: "País donde vives", info_city: "Ciudad", info_none: "Sin indicar",
+    info_save: "Guardar", info_saved: "¡Gracias, guardado!", info_prompt: "Dinos de dónde eres", info_prompt_p: "Nacionalidad, país y ciudad. Opcional, 10 segundos.", info_later: "Más tarde",
+    adm_unlock: "Admin: todas las lecciones están abiertas para ti.", adm_time: "Tiempo en la app", adm_hours_total: "Horas en total", adm_hours_7: "Horas esta semana", adm_min_avg: "Minutos por alumno", adm_sessions: "Sesiones",
+    adm_hours: "Horas de conexión (tu hora local, últimos 30 días)", adm_nat: "Nacionalidades", adm_country: "Países de residencia", adm_city: "Ciudades", adm_device: "Dispositivos", adm_tz: "Husos horarios",
+    adm_refs: "Invitaciones", adm_refs_n: "Amigos invitados", adm_refs_active: "Invitados que aprenden", adm_u_time: "{m} min · {s} sesiones · {d} días activos", adm_u_inv: "{n} invitados",
+    adm_no_info: "Nadie lo ha rellenado aún.", dev_mobile: "Móvil", dev_tablet: "Tableta", dev_desktop: "Ordenador",
+    priv_extra: "Si inicias sesión, el equipo también ve cuánto tiempo usas la app, a qué horas, tu tipo de dispositivo y huso horario, cuántos amigos invitaste, y tu nacionalidad, país y ciudad si decides indicarlos.",
+  },
+};
+for (const k in EX_T) { Object.assign(T[k], EX_T[k]); if (T[k].privacy_p) T[k].privacy_p += " " + EX_T[k].priv_extra; }
+
+// Appareil et fuseau horaire (envoyés avec la progression des comptes connectés)
+function deviceMeta() {
+  const ua = navigator.userAgent || "";
+  const device = /iPad|Tablet/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1) ? "tablet" : /Mobi|Android|iPhone|iPod/i.test(ua) ? "mobile" : "desktop";
+  let tz = ""; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) {}
+  return { device, tz };
+}
+
+// Pays (ISO 3166-1) : noms traduits par le navigateur
+const COUNTRIES = "CV PT FR US NL LU BE CH ES IT DE GB IE BR AO GW ST MZ SN GM MA DZ TN CA AD AE AF AG AI AL AM AR AT AU AW AZ BA BB BD BF BG BH BI BJ BM BN BO BS BT BW BY BZ CD CF CG CI CL CM CN CO CR CU CW CY CZ DJ DK DM DO EC EE EG ER ET FI FJ GA GD GE GH GN GQ GR GT GY HK HN HR HT HU ID IL IN IQ IR IS JM JO JP KE KG KH KM KR KW KZ LA LB LC LI LK LR LS LT LV LY MC MD ME MG MK ML MM MN MO MR MT MU MV MW MX MY NA NE NG NI NO NP NZ OM PA PE PG PH PK PL PR PS PY QA RE RO RS RU RW SA SC SD SE SG SI SK SL SM SO SR SS SV SY SZ TD TG TH TJ TL TM TR TT TW TZ UA UG UY UZ VA VC VE VN YE ZA ZM ZW".split(" ");
+const TOP_COUNTRIES = 13;
+function regionName(c) { try { return new Intl.DisplayNames([L], { type: "region" }).of(c) || c; } catch (e) { return c; } }
+const flag = c => /^[A-Z]{2}$/.test(c || "") ? String.fromCodePoint(...[...c].map(ch => 127397 + ch.charCodeAt(0))) : "";
+function countryOptions(sel) {
+  const opt = c => `<option value="${c}" ${c === sel ? "selected" : ""}>${flag(c)} ${esc(regionName(c))}</option>`;
+  const rest = COUNTRIES.slice(TOP_COUNTRIES).sort((a, b) => regionName(a).localeCompare(regionName(b), L));
+  return `<option value="">${t("info_none")}</option>${COUNTRIES.slice(0, TOP_COUNTRIES).map(opt).join("")}<option disabled>──────────</option>${rest.map(opt).join("")}`;
+}
+
+// ---- Défis : un défi du jour (tourne chaque jour) et quatre défis de la semaine ----
+const CH_DAY = [["d_right", 15], ["d_lesson", 1], ["d_combo", 5]];
+const CH_WEEK = [["w_lessons", 3, 50], ["w_days", 4, 60], ["w_perfect", 1, 40], ["w_invite", 1, 100]];
+const CH_DAY_XP = 20, REF_XP = 100, REF_WELCOME = 50;
+function chState() {
+  const w = isoWeek(), d = today(), c = S.ch && typeof S.ch === "object" ? S.ch : {};
+  if (c.w !== w) Object.assign(c, { w, lessons: 0, days: [], perfect: 0, claimed: {} });
+  if (c.d !== d) Object.assign(c, { d, right: 0, dl: 0, combo: 0, dclaimed: false });
+  S.ch = c; return c;
+}
+const dayChallenge = () => CH_DAY[Math.floor(Date.parse(today()) / 86400000) % CH_DAY.length];
+function chList() {
+  const c = chState(), [key, n] = dayChallenge();
+  const dv = key === "d_right" ? c.right : key === "d_lesson" ? c.dl : c.combo;
+  const wv = { w_lessons: c.lessons, w_days: (c.days || []).length, w_perfect: c.perfect, w_invite: REF.week };
+  return [{ id: "day", key, n, v: Math.min(dv || 0, n), xp: CH_DAY_XP, done: !!c.dclaimed },
+    ...CH_WEEK.filter(([k]) => k !== "w_invite" || SUPA).map(([k, n2, xp]) => ({ id: k, key: k, n: n2, v: Math.min(wv[k] || 0, n2), xp, done: !!c.claimed[k] }))];
+}
+function chCheck() {
+  const c = chState(), got = [];
+  for (const x of chList()) if (!x.done && x.v >= x.n) { addXp(x.xp); if (x.id === "day") c.dclaimed = true; else c.claimed[x.id] = true; got.push(x); }
+  return got;
+}
+function chOnAnswer(ok) { const c = chState(); if (ok) c.right = (c.right || 0) + 1; c.combo = Math.max(c.combo || 0, (X && X.combo) || 0); }
+function chOnComplete(lessonIdx, G) {
+  const c = chState(), d = today();
+  if (lessonIdx !== null) { c.lessons++; c.dl++; }
+  if (!c.days.includes(d)) c.days.push(d);
+  if (G.perfect) c.perfect++;
+  return chCheck();
+}
+const chName = x => t(x.key, { n: x.n });
+function chRow(x) {
+  return `<div class="ch-row ${x.done ? "on" : ""}"><span class="ch-ic">${glyph(x.done ? "check" : x.id === "day" ? "target" : x.id === "w_invite" ? "users" : "flag", 18)}</span>
+    <div class="grow"><b class="small">${esc(chName(x))}</b><div class="progress" style="height:8px;margin-top:4px"><i style="width:${100 * x.v / x.n}%"></i></div></div>
+    <span class="ch-xp">${x.done ? t("ch_done") : `${x.v}/${x.n} · +${x.xp} XP`}</span></div>`;
+}
+function chHomeCard() {
+  const L2 = chList();
+  return `<div class="card stack"><div class="row"><h3 class="grow">${t("ch_t")}</h3>${glyph("trophy", 22)}</div>
+    <div class="eyebrow">${t("ch_day")}</div>${chRow(L2[0])}
+    <div class="eyebrow">${t("ch_week")}</div>${L2.slice(1).map(chRow).join("")}</div>`;
+}
+function chFinish(G) {
+  if (!G || !G.chal || !G.chal.length) return "";
+  return `<div class="card stack" style="width:100%;text-align:left"><h3>${t("ch_fin")}</h3>${G.chal.map(x => `<div class="row small"><span class="ch-ic on">${glyph("check", 16)}</span><span class="grow">${esc(chName(x))}</span><b>+${x.xp} XP</b></div>`).join("")}</div>`;
+}
+
+// ---- Parrainage : lien ?ref=CODE, récompense quand l'ami termine sa première leçon ----
+const REF_KEY = "marazul.ref";
+let REF = { code: null, invited: 0, active: 0, week: 0, loaded: false };
+(function catchRef() {
+  try {
+    const p = new URLSearchParams(location.search), r = p.get("ref");
+    if (!r) return;
+    if (/^[a-f0-9]{8}$/i.test(r)) localStorage.setItem(REF_KEY, r.toLowerCase());
+    p.delete("ref"); history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash);
+  } catch (e) {}
+})();
+const pendingRef = () => { try { return localStorage.getItem(REF_KEY); } catch (e) { return null; } };
+async function refSync() {
+  const sb = supa(); if (!sb || !CLOUD) return;
+  const pend = pendingRef();
+  if (pend) {
+    const { data, error } = await sb.rpc("claim_referral", { p_code: pend });
+    if (!error) { try { localStorage.removeItem(REF_KEY); } catch (e) {} if (data === "ok") { addXp(REF_WELCOME); save(); toast(t("inv_welcome", { n: REF_WELCOME })); } }
+  }
+  const [c, r] = await Promise.all([sb.rpc("my_ref_code"), sb.rpc("my_referrals")]);
+  if (!c.error && c.data) REF.code = c.data;
+  if (!r.error && r.data) { REF.invited = Number(r.data.invited) || 0; REF.active = Number(r.data.active) || 0; REF.week = Number(r.data.week) || 0; }
+  REF.loaded = true;
+  const owed = REF.active - (S.refPaid || 0);
+  if (owed > 0) { addXp(owed * REF_XP); S.refPaid = REF.active; save(); setTimeout(() => toast(t("inv_reward", { n: owed * REF_XP })), 1500); }
+  const got = chCheck();
+  if (got.length) { save(); setTimeout(() => toast(t("ch_toast", { n: got.reduce((a, x) => a + x.xp, 0) })), 3200); }
+  render();
+}
+const inviteLink = () => REF.code ? location.origin + location.pathname + "?ref=" + REF.code : "";
+async function shareInvite() {
+  const url = inviteLink(); if (!url) return;
+  const text = t("inv_msg");
+  if (navigator.share) { try { await navigator.share({ title: "Mar Azul", text, url }); return; } catch (e) { if (e && e.name === "AbortError") return; } }
+  try { await navigator.clipboard.writeText(text + " " + url); toast(t("inv_copied")); }
+  catch (e) { const f = $("#invlink"); if (f) { f.focus(); f.select(); } }
+}
+function inviteCard() {
+  if (!SUPA) return "";
+  const head = `<div class="row">${img("simpatiku", 56, MASCOT_NAME)}<div class="grow"><h3>${t("inv_t")}</h3><p class="small muted">${t("inv_p", { n: REF_XP, m: REF_WELCOME })}</p></div></div>`;
+  if (!CLOUD) return `<div class="card stack">${head}<button class="btn light" data-go="profile">${t("inv_login")}</button></div>`;
+  return `<div class="card stack">${head}
+    ${REF.code ? `<label class="field-label" for="invlink">${t("inv_link")}</label><input id="invlink" class="answer-input" style="font-size:.9rem" readonly value="${esc(inviteLink())}">
+    <button class="btn" data-inv-share>${glyph("users", 20)} ${t("inv_share")}</button>` : ""}
+    ${REF.loaded ? `<p class="small muted">${t("inv_stats", { a: REF.invited, b: REF.active })}</p>` : ""}</div>`;
+}
+
+// ---- Infos facultatives : nationalité, pays de résidence, ville ----
+function infoCard() {
+  const i = S.info || {};
+  return `<form class="card stack" id="infoform"><h3 id="info">${t("info_t")}</h3><p class="small muted">${t("info_p")}</p>
+    <label class="field-label" for="infonat">${t("info_nat")}</label><select id="infonat" class="answer-input" style="font-size:1rem">${countryOptions(i.nat)}</select>
+    <label class="field-label" for="infocountry">${t("info_country")}</label><select id="infocountry" class="answer-input" style="font-size:1rem">${countryOptions(i.country)}</select>
+    <label class="field-label" for="infocity">${t("info_city")}</label><input id="infocity" class="answer-input" style="font-size:1rem" maxlength="60" autocomplete="address-level2" value="${esc(i.city || "")}">
+    <button class="btn" type="submit">${t("info_save")}</button></form>`;
+}
+function infoPromptCard() {
+  if (!CLOUD || S.info || S.infoLater) return "";
+  return `<div class="card stack"><div class="row">${img("kuriousu", 56, MASCOT_NAME)}<div class="grow"><h3>${t("info_prompt")}</h3><p class="small muted">${t("info_prompt_p")}</p></div></div>
+    <div class="row"><button class="btn" data-info-go>${t("info_save")}</button><button class="btn light" data-info-later>${t("info_later")}</button></div></div>`;
+}
+
+// ---- Admin : temps passé, heures, pays, nationalités, appareils, parrainage ----
+function admCount(obj, label, fmt) {
+  const rows = Object.entries(obj || {}).sort((x, y) => y[1] - x[1]);
+  const max = Math.max(1, ...rows.map(r => Number(r[1])));
+  return `<div class="card stack"><h3>${t(label)}</h3>${rows.length ? rows.map(([k, v]) => `<div class="stack" style="gap:4px"><div class="row small"><span class="grow">${fmt(k)}</span><b style="font-variant-numeric:tabular-nums">${Number(v)}</b></div><div class="progress" style="height:6px"><i style="width:${100 * Number(v) / max}%"></i></div></div>`).join("") : `<p class="small muted">${t("adm_no_info")}</p>`}</div>`;
+}
+function admHours(utc) {
+  const off = -new Date().getTimezoneOffset() / 60, loc = Array(24).fill(0);
+  (utc || []).forEach((v, h) => { loc[((Math.round(h + off) % 24) + 24) % 24] += Number(v) || 0; });
+  const max = Math.max(1, ...loc);
+  return `<div class="card stack"><h3>${t("adm_hours")}</h3><div class="hours-chart" role="img" aria-label="${t("adm_hours")}">${loc.map((v, h) => `<div class="hc-col" title="${h}h : ${v} min"><i style="height:${Math.max(2, 100 * v / max)}%"></i><span>${h % 3 === 0 ? h : ""}</span></div>`).join("")}</div></div>`;
+}
+function adminExtra(a) {
+  const n = x => Number(x || 0), stat = (v, k) => `<div class="stat"><b>${v}</b><span>${t(k)}</span></div>`;
+  const fmtC = c => `${flag(c)} ${esc(regionName(c))}`;
+  return `<h2>${t("adm_time")}</h2>
+    <div class="stats" style="grid-template-columns:repeat(2,1fr)">${stat((n(a.minutes) / 60).toFixed(1), "adm_hours_total")}${stat((n(a.minutes_7d) / 60).toFixed(1), "adm_hours_7")}${stat(n(a.timed) ? Math.round(n(a.minutes) / n(a.timed)) : 0, "adm_min_avg")}${stat(n(a.sessions), "adm_sessions")}</div>
+    ${admHours(a.hours_utc)}
+    <div class="stats" style="grid-template-columns:repeat(2,1fr)">${stat(n(a.refs), "adm_refs_n")}${stat(n(a.refs_active), "adm_refs_active")}</div>
+    ${admCount(a.nat, "adm_nat", fmtC)}${admCount(a.country, "adm_country", fmtC)}${admCount(a.city, "adm_city", esc)}
+    ${admCount(a.device, "adm_device", k => esc(t("dev_" + k)))}${admCount(a.tz, "adm_tz", esc)}`;
+}
+function admUserExtra(u) {
+  const n = x => Number(x || 0), bits = [];
+  if (u.nat) bits.push(`${t("info_nat")} ${flag(u.nat)} ${esc(regionName(u.nat))}`);
+  if (u.country || u.city) bits.push(`${flag(u.country)} ${esc([u.city, u.country ? regionName(u.country) : ""].filter(Boolean).join(", "))}`);
+  if (u.device) bits.push(esc(t("dev_" + u.device)));
+  if (n(u.invited)) bits.push(t("adm_u_inv", { n: n(u.invited) }));
+  return `<div class="small muted">${t("adm_u_time", { m: n(u.minutes), s: n(u.sessions), d: n(u.days) })}</div>${bits.length ? `<div class="small muted">${bits.join(" · ")}</div>` : ""}`;
+}
+
+// ---- Clics et formulaires ----
+function exClick(d) {
+  if ("invShare" in d) { shareInvite(); return true; }
+  if ("infoLater" in d) { S.infoLater = true; save(); render(); return true; }
+  if ("infoGo" in d) { go("profile"); setTimeout(() => { const f = $("#info"); if (f) f.scrollIntoView({ block: "start" }); const s = $("#infonat"); if (s) s.focus(); }, 50); return true; }
+  return false;
+}
+function exAfterRender() {
+  const f = $("#infoform");
+  if (f) f.onsubmit = e => {
+    e.preventDefault();
+    const nat = $("#infonat").value, country = $("#infocountry").value, city = $("#infocity").value.trim().slice(0, 60);
+    S.info = { nat: COUNTRIES.includes(nat) ? nat : "", country: COUNTRIES.includes(country) ? country : "", city };
+    save(); if (typeof pushNow === "function") pushNow(); toast(t("info_saved"));
+  };
+}
+
+(function () {
+  const st = document.createElement("style");
+  st.textContent = `
+  .ch-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+  .ch-ic { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--tile); color: var(--navy); }
+  .ch-row.on .ch-ic, .ch-ic.on { background: var(--ok-bg); color: var(--ok); }
+  .ch-xp { flex: none; font-weight: 800; font-size: .8rem; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .ch-row.on .ch-xp { color: var(--ok); }
+  .hours-chart { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; height: 120px; align-items: end; }
+  .hc-col { height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 2px; }
+  .hc-col i { display: block; width: 100%; background: var(--ocean); border-radius: 3px 3px 0 0; }
+  .hc-col span { font-size: .65rem; color: var(--muted); height: 12px; font-variant-numeric: tabular-nums; }`;
   document.head.appendChild(st);
 })();
 
