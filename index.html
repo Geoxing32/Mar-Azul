@@ -275,6 +275,80 @@ p { margin: 0; }
 
 @keyframes pop { from { transform: scale(.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 .pop { animation: pop 220ms var(--ease-out); }
+
+/* ---- Finition 2026-11 : mise en page, navigation, liens (mobile d'abord, ordinateur avec barre latérale) ---- */
+.screen { --gx: 16px; padding-left: max(var(--gx), env(safe-area-inset-left, 0px)); padding-right: max(var(--gx), env(safe-area-inset-right, 0px)); }
+.card, .stat, .phrase, .lesson-item, .choice, .amount { box-shadow: 0 1px 2px rgba(18,41,74,.05), 0 6px 18px -8px rgba(18,41,74,.10); }
+.lesson-item, .choice, .amount { border-width: 1.5px; }
+.lesson-item.current { box-shadow: 0 0 0 3px rgba(47,143,224,.18), 0 6px 18px -8px rgba(18,41,74,.14); }
+.choice[aria-pressed="true"], .choice.sel { box-shadow: 0 0 0 3px rgba(47,143,224,.18); }
+.choice.right { box-shadow: 0 0 0 3px rgba(31,157,91,.18); } .choice.wrong { box-shadow: 0 0 0 3px rgba(200,70,61,.16); }
+button.card, button.island, .lesson-item { cursor: pointer; }
+@media (hover: hover) and (pointer: fine) {
+  button.card:hover, .lesson-item:not(.locked):hover { border-color: var(--ocean); }
+  button.island:hover { filter: saturate(1.08) brightness(1.03); }
+  .btn:hover { filter: brightness(1.06); }
+}
+/* Liens : lisibles mais discrets, zone de tap confortable */
+.link { text-decoration-thickness: 2px; text-decoration-color: rgba(47,143,224,.35); padding-block: 6px; border-radius: 6px; transition: text-decoration-color 160ms ease, color 160ms ease; }
+.link:hover { text-decoration-color: currentColor; }
+.screen a:not(.btn) { color: var(--ocean); font-weight: 700; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+a[target="_blank"]:not(.btn)::after { content: "\2197"; display: inline-block; margin-left: 2px; font-size: .8em; text-decoration: none; }
+
+/* Barre de titre collante (titre + retour) */
+.topbar { position: sticky; top: 0; z-index: 6; margin: -20px calc(-1 * var(--gx)) -4px; padding: 14px var(--gx) 10px; padding-top: max(14px, env(safe-area-inset-top, 0px)); background: rgba(251,246,236,.88); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); transition: box-shadow 200ms ease; min-height: 64px; }
+.topbar h1 { font-size: 1.6rem; }
+.topbar .iconbtn { margin-left: -8px; }
+.scrolled .topbar { box-shadow: 0 1px 0 var(--line); }
+
+/* Listes groupées (mots d'une leçon, vocabulaire) */
+.stack.group { gap: 0; background: var(--card); border: 1px solid var(--line); border-radius: 20px; overflow: hidden; box-shadow: 0 1px 2px rgba(18,41,74,.05), 0 6px 18px -8px rgba(18,41,74,.10); }
+.stack.group > .phrase { border: 0; border-radius: 0; box-shadow: none; padding: 12px 16px; }
+.stack.group > .phrase + .phrase { border-top: 1px solid var(--line); }
+.stack.group > p.muted { padding: 16px; }
+.stack.group:empty { display: none; }
+
+/* Bouton d'action collant en bas de la leçon */
+.cta-bar { position: sticky; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); z-index: 4; margin-top: -4px; padding-top: 16px; background: linear-gradient(180deg, rgba(251,246,236,0), var(--cream) 45%); }
+
+/* Barre de navigation du bas (mobile) */
+.nav { background: rgba(255,255,255,.9); -webkit-backdrop-filter: saturate(180%) blur(18px); backdrop-filter: saturate(180%) blur(18px); border-top: 1px solid rgba(18,41,74,.08); }
+.nav button { font-size: .66rem; padding: 8px 1px 7px; gap: 3px; letter-spacing: 0; }
+.nav button > svg { width: 48px; height: 30px; padding: 3px 12px; border-radius: 999px; box-sizing: border-box; transition: background-color 180ms ease; }
+.nav button[aria-current="page"] > svg { background: #E2EFFC; }
+.nav .nav-brand, .nav .nav-extra { display: none; }
+
+/* Tablette : colonne un peu plus large */
+@media (min-width: 600px) {
+  .app { max-width: 600px; }
+  .screen { --gx: 24px; }
+  .nav .inner { max-width: 600px; }
+}
+
+/* Ordinateur : barre latérale à gauche, contenu centré plus large */
+@media (min-width: 960px) {
+  .app { max-width: none; }
+  .app.has-nav { padding-left: 264px; }
+  .screen { --gx: 40px; width: 100%; max-width: 760px; margin: 0 auto; padding-top: 32px; }
+  .app.has-nav .screen { padding-bottom: 64px; }
+  .topbar { margin-top: -32px; padding-top: 28px; padding-bottom: 14px; }
+  .topbar h1 { font-size: 2rem; }
+  .cta-bar { bottom: 0; padding-bottom: 20px; }
+  .nav { top: 0; bottom: 0; right: auto; width: 264px; border-top: 0; border-right: 1px solid var(--line); background: var(--card); padding: 0; }
+  .nav .inner { max-width: none; height: 100%; display: flex; flex-direction: column; gap: 4px; padding: 24px 16px; overflow-y: auto; }
+  .nav button { flex-direction: row; justify-content: flex-start; gap: 12px; padding: 10px 12px; border-radius: 14px; font-size: 1rem; font-weight: 800; color: var(--muted); white-space: normal; text-align: left; }
+  .nav button > svg { width: 26px; height: 26px; padding: 0; background: none !important; flex: none; }
+  .nav button:hover { background: var(--tile); color: var(--navy); }
+  .nav button[aria-current="page"] { background: #E2EFFC; color: var(--navy); }
+  .nav .nav-brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; font-family: var(--display); font-size: 1.6rem; font-weight: 800; color: var(--navy); background: none !important; }
+  .nav .nav-brand svg { width: 44px; height: 44px; stroke: none; }
+  .nav .nav-extra { display: flex; margin-top: auto; border-top: 1px solid var(--line); border-radius: 0 0 14px 14px; padding-top: 18px; }
+  .nav .nav-extra.sup { color: var(--navy); }
+  .nav .nav-extra.sup svg { stroke: #E0533D; }
+  .nav .nav-extra + .nav-extra { margin-top: 0; border-top: 0; padding-top: 10px; }
+  .toast { bottom: 32px; left: calc(50% + 132px); }
+  .feedback .inner { max-width: 680px; }
+}
 </style>
 
 <div class="app" id="app"></div>
@@ -709,7 +783,27 @@ const SCENE = `<svg class="scene" viewBox="0 0 200 130" preserveAspectRatio="xMa
 // ---- Router (state inside the page; bare #tokens for main views) ----
 let R = { v: "cover" };
 const NAV = ["home", "lessons", "practice", "board", "vocab", "profile"];
-function go(v, extra = {}) { if (v !== "cover") seaStop(); if (v === "finish") sfx("finish"); R = Object.assign({ v }, extra); render(); window.scrollTo(0, 0); }
+const ROUTES = ["home", "lessons", "practice", "vocab", "profile", "soutenir", "culture", "progress", "admin", "course", "board", "avatar"];
+const hashOf = r => r.v === "lesson" ? "lesson-" + (r.i + 1) : ROUTES.includes(r.v) ? r.v : null;
+function routeFromHash() {
+  const h = location.hash.slice(1), m = /^lesson-(\d+)$/.exec(h);
+  if (m) { const i = Number(m[1]) - 1; return LESSONS[i] && unlocked(i) ? { v: "lesson", i } : { v: "lessons" }; }
+  return ROUTES.includes(h) ? { v: h } : null;
+}
+function go(v, extra = {}, fromHistory) {
+  if (v !== "cover") seaStop(); if (v === "finish") sfx("finish"); R = Object.assign({ v }, extra);
+  const h = hashOf(R);
+  if (!fromHistory && h && location.hash.slice(1) !== h) { try { history.pushState(null, "", "#" + h); } catch (e) {} }
+  render(); window.scrollTo(0, 0);
+}
+addEventListener("popstate", () => {
+  if (!S.onboarded) return;
+  if (R.v === "ex" && typeof stopListening === "function") stopListening();
+  const r = routeFromHash() || { v: "cover" };
+  if (r.v === "lessons" || r.v === "lesson") lessonTab = "learn";
+  go(r.v, r.v === "lesson" ? { i: r.i } : {}, true);
+  if (r.v === "admin" && IS_ADMIN && typeof loadAdmin === "function") loadAdmin();
+});
 
 function render() {
   document.documentElement.lang = L;
@@ -737,14 +831,17 @@ function render() {
   }
   const showNav = S.onboarded && !["ex", "finish", "cover"].includes(R.v);
   app.innerHTML = html + (showNav ? navBar() : "");
+  app.classList.toggle("has-nav", !!showNav);
   bind();
   gameAfterRender();
 }
 function navBar() {
   const cur = R.v === "lesson" ? "lessons" : ["culture", "progress", "soutenir", "admin", "avatar", "course", "voices"].includes(R.v) ? (["culture", "course"].includes(R.v) ? "home" : "profile") : R.v;
-  return `<nav class="nav" aria-label="Main"><div class="inner">${NAV.map(n => `<button data-go="${n}" ${cur === n ? 'aria-current="page"' : ""}><svg viewBox="0 0 24 24">${ICONS[n]}</svg>${t("nav_" + n)}</button>`).join("")}</div></nav>`;
+  const sup = DONATIONS_ON ? `<button class="nav-extra sup" data-go="soutenir" ${R.v === "soutenir" ? 'aria-current="page"' : ""}><svg viewBox="0 0 24 24">${ICONS.heart}</svg>${t("support_card")}</button>` : "";
+  return `<nav class="nav" aria-label="Main"><div class="inner"><button class="nav-brand" data-go="home" aria-label="Mar Azul">${img("icon", 44)}<span>Mar Azul</span></button>${NAV.map(n => `<button data-go="${n}" ${cur === n && R.v !== "soutenir" ? 'aria-current="page"' : ""}><svg viewBox="0 0 24 24">${ICONS[n]}</svg>${t("nav_" + n)}</button>`).join("")}${sup}</div></nav>`;
 }
-const header = (title, backTo) => `<div class="row">${backTo ? `<button class="iconbtn" data-go="${backTo}" aria-label="${t("back")}">${ic("back", 26)}</button>` : ""}<h1 class="grow">${title}</h1></div>`;
+const header = (title, backTo) => `<header class="topbar row">${backTo ? `<button class="iconbtn" data-go="${backTo}" aria-label="${t("back")}">${ic("back", 26)}</button>` : ""}<h1 class="grow">${title}</h1></header>`;
+addEventListener("scroll", () => document.body.classList.toggle("scrolled", scrollY > 6), { passive: true });
 
 
 // ---- Cover page: the sea moves gently, sharks swim and jump out of the water ----
@@ -811,10 +908,10 @@ function homeView() {
     : `<button class="island" data-open-lesson="${ni}" style="text-align:left;border:0;width:100%">${SCENE}<div class="label small">${t("today")}</div><h2>${t("lesson_n", { n: ni + 1 })} · ${titleOf(ni)}</h2><div class="label small" style="margin-top:8px;display:inline-flex;gap:6px;align-items:center;background:rgba(11,61,122,.55);padding:6px 12px;border-radius:999px">${t("resume")} ${ic("arrow", 16)}</div></button>`;
   return `<div class="screen">
     <div class="mascot-row">${img(away ? "orgulhosu" : "contentu", 72, MASCOT_NAME)}<div class="grow"><h1>${esc(greeting())}!</h1><p class="muted">${away ? t("away", { name: MASCOT_NAME }) : isKea() ? t("home_sub") : t("home_sub_x", { lang: lname(C()) })}</p></div></div>
+    ${lessonCard}
     <div class="card stack"><div class="row"><div class="grow"><div class="eyebrow">${isKea() ? t("course") : t("course_x", { lang: cap(lname(C())) })}</div><h3>${t("lessons_of", { a: n, b: LESSONS.length })}</h3></div><button class="link small" data-go="course">${t("change_course")}</button>${img("map", 56)}</div><div class="progress" role="progressbar" aria-valuenow="${n}" aria-valuemin="0" aria-valuemax="${LESSONS.length}"><i style="width:${100 * n / LESSONS.length}%"></i></div></div>
     ${gameHomeCard()}
     ${infoPromptCard()}
-    ${lessonCard}
     ${chHomeCard()}
     ${inviteCard()}
     <div class="stats">
@@ -846,7 +943,7 @@ let lessonTab = "learn";
 function lessonView() {
   const i = R.i, l = LESSONS[i], notes = l.entrees.filter(e => e.note && e.note !== "Nom de l'appli");
   let body;
-  if (lessonTab === "learn") body = `<div class="stack">${l.entrees.map(phraseRow).join("")}</div>`;
+  if (lessonTab === "learn") body = `<div class="stack group">${l.entrees.map(phraseRow).join("")}</div><div class="cta-bar"><button class="btn" data-start="${i}">${t("start_practice")} ${ic("arrow")}</button></div>`;
   else if (lessonTab === "culture") {
     const facts = (l.faits || []).map(f => `<div class="card stack fact"><p>${esc(f.texte[L] || f.texte.en)}</p><p class="small muted">${t("source")} : ${f.source.url ? `<a href="${esc(f.source.url)}" target="_blank" rel="noopener">${esc(f.source.nom)}</a>` : esc(f.source.nom)}</p></div>`).join("");
     const rows = notes.map(e => `<div class="phrase"><div class="grow"><div class="kr">${esc(kr(e))}</div><div class="tr">${esc(tr(e))}</div>${L === "fr" ? `<div class="note">${esc(e.note)}</div>` : ""}</div></div>`).join("");
@@ -988,7 +1085,7 @@ function vocabView() {
     <label for="vsearch" class="field-label" hidden>${t("search")}</label>
     <input id="vsearch" class="search" type="search" placeholder="${t("search")}" value="${esc(vq)}" autocomplete="off">
     <div class="filter-row">${[["all", t("all")], ...LESSONS.map((_, i) => [i, titleOf(i)])].map(([k, n]) => `<button class="pill" data-vf="${k}" aria-pressed="${vf === k}">${esc(n)}</button>`).join("")}</div>
-    <div class="stack" id="vlist">${list.length ? list.map(({ e }) => phraseRow(e)).join("") : `<p class="muted">${t("none", { q: esc(vq) })}</p>`}</div></div>`;
+    <div class="stack group" id="vlist">${list.length ? list.map(({ e }) => phraseRow(e)).join("") : `<p class="muted">${t("none", { q: esc(vq) })}</p>`}</div></div>`;
 }
 function cultureView() {
   const words = ["L09-07", "L10-01", "L05-01", "L10-11"].map(id => LESSONS.flatMap(l => l.entrees).find(e => e.id === id));
@@ -2348,7 +2445,7 @@ function exAfterRender() {
 
 
 // Open a bare #token view on load (home, lessons, practice, vocab, profile, soutenir, culture, progress, admin)
-(function () { const h = location.hash.slice(1); if (S.onboarded && ["home", "lessons", "practice", "vocab", "profile", "soutenir", "culture", "progress", "admin", "course", "board"].includes(h)) R = { v: h }; })();
+(function () { if (S.onboarded) { const r = routeFromHash(); if (r) R = r; } })();
 render();
 if (VOICE_ON) loadRecordings();
 </script>
